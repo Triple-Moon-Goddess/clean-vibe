@@ -621,7 +621,8 @@ function addLog(logId, msg, cls = '') {
 }
 
 async function callClaude(system, userMsg, model) {
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
+  const PROXY = 'https://clean-vibe-proxy.triplemoongoddess.workers.dev';
+  const res = await fetch(PROXY, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
