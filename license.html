@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>clean-vibe — Commercial License</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f1117;
+    --bg2: #181c27;
+    --bg3: #1e2333;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --text: #e8eaf0;
+    --text2: #8b90a0;
+    --text3: #555c70;
+    --blue: #4f8ef7;
+    --blue-bg: rgba(79,142,247,0.12);
+    --green: #3ecf8e;
+    --green-bg: rgba(62,207,142,0.1);
+    --amber: #f5a623;
+    --amber-bg: rgba(245,166,35,0.1);
+    --red: #e05c5c;
+    --red-bg: rgba(224,92,92,0.1);
+    --purple: #a78bfa;
+    --purple-bg: rgba(167,139,250,0.1);
+    --radius: 8px;
+    --radius-lg: 12px;
+    --mono: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  .app { max-width: 680px; margin: 0 auto; padding: 2rem 1.5rem 6rem; }
+
+  /* Header */
+  .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 3rem; flex-wrap: wrap; gap: 12px; }
+  .logo-row { display: flex; align-items: center; gap: 12px; }
+  .logo { width: 36px; height: 36px; background: var(--blue-bg); border: 1px solid rgba(79,142,247,0.3); border-radius: var(--radius); display: flex; align-items: center; justify-content: center; font-size: 16px; }
+  .brand { font-size: 20px; font-weight: 600; color: var(--text); letter-spacing: -0.3px; }
+  .brand span { color: var(--blue); }
+  .back-link { font-size: 12px; color: var(--text2); text-decoration: none; display: flex; align-items: center; gap: 5px; transition: color 0.15s; }
+  .back-link:hover { color: var(--text); }
+
+  /* Hero */
+  .hero { margin-bottom: 2.5rem; }
+  .hero-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.1em; color: var(--blue); margin-bottom: 10px; }
+  .hero-title { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; color: var(--text); line-height: 1.25; margin-bottom: 12px; }
+  .hero-sub { font-size: 15px; color: var(--text2); line-height: 1.65; max-width: 520px; }
+
+  /* Pricing card */
+  .pricing-card {
+    background: var(--bg2);
+    border: 1px solid rgba(79,142,247,0.25);
+    border-radius: var(--radius-lg);
+    padding: 1.75rem;
+    margin-bottom: 1.25rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .pricing-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--blue), var(--purple));
+  }
+  .pricing-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 1.5rem; }
+  .pricing-name { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .pricing-desc { font-size: 12px; color: var(--text2); }
+  .pricing-amount { text-align: right; flex-shrink: 0; }
+  .amount-big { font-size: 32px; font-weight: 700; letter-spacing: -1px; color: var(--text); line-height: 1; }
+  .amount-big sub { font-size: 16px; font-weight: 500; vertical-align: baseline; color: var(--text2); letter-spacing: 0; }
+  .amount-period { font-size: 12px; color: var(--text3); margin-top: 3px; }
+
+  .features { display: flex; flex-direction: column; gap: 9px; margin-bottom: 1.5rem; }
+  .feature { display: flex; align-items: flex-start; gap: 9px; }
+  .feature-check { color: var(--green); font-size: 13px; flex-shrink: 0; margin-top: 1px; }
+  .feature-text { font-size: 13px; color: var(--text2); line-height: 1.5; }
+  .feature-text strong { color: var(--text); font-weight: 500; }
+
+  .divider { border: none; border-top: 1px solid var(--border); margin: 1.25rem 0; }
+
+  /* Per-seat note */
+  .seat-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 1.25rem; }
+  .seat-label { font-size: 12px; color: var(--text2); }
+  .seat-selector { display: flex; align-items: center; gap: 8px; }
+  .seat-btn { width: 26px; height: 26px; border-radius: 6px; border: 1px solid var(--border2); background: var(--bg3); color: var(--text); font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.12s; font-family: inherit; line-height: 1; }
+  .seat-btn:hover { border-color: var(--blue); color: var(--blue); }
+  .seat-count { font-size: 14px; font-weight: 600; color: var(--text); min-width: 24px; text-align: center; }
+  .seat-price-note { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+  /* CTA */
+  .cta-btn {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%; padding: 14px 20px;
+    background: var(--blue); color: #fff;
+    border: none; border-radius: var(--radius);
+    font-size: 14px; font-weight: 600; font-family: inherit;
+    cursor: pointer; text-decoration: none;
+    transition: all 0.15s;
+    letter-spacing: -0.1px;
+  }
+  .cta-btn:hover { opacity: 0.88; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(79,142,247,0.3); }
+  .cta-btn:active { transform: translateY(0); }
+  .stripe-note { display: flex; align-items: center; justify-content: center; gap: 5px; margin-top: 10px; font-size: 11px; color: var(--text3); }
+  .stripe-logo { font-size: 11px; font-weight: 700; color: var(--text3); letter-spacing: -0.3px; }
+
+  /* Free card */
+  .free-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; margin-bottom: 1.25rem; }
+  .free-top { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 1rem; }
+  .free-name { font-size: 13px; font-weight: 600; color: var(--text); }
+  .free-badge { font-size: 11px; padding: 2px 9px; border-radius: 20px; background: var(--green-bg); color: var(--green); border: 1px solid rgba(62,207,142,0.2); font-weight: 500; }
+  .free-features { display: flex; flex-direction: column; gap: 7px; }
+
+  /* FAQ */
+  .faq-section { margin-top: 2.5rem; }
+  .section-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text3); margin-bottom: 1rem; }
+  .faq-item { border-bottom: 1px solid var(--border); }
+  .faq-q { width: 100%; padding: 13px 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; background: none; border: none; color: var(--text); font-size: 13px; font-weight: 500; font-family: inherit; cursor: pointer; text-align: left; transition: color 0.15s; }
+  .faq-q:hover { color: var(--blue); }
+  .faq-icon { font-size: 16px; color: var(--text3); flex-shrink: 0; transition: transform 0.2s; }
+  .faq-item.open .faq-icon { transform: rotate(45deg); color: var(--blue); }
+  .faq-a { font-size: 13px; color: var(--text2); line-height: 1.65; padding-bottom: 13px; display: none; }
+  .faq-item.open .faq-a { display: block; }
+  .faq-a a { color: var(--blue); text-decoration: none; }
+  .faq-a a:hover { text-decoration: underline; }
+
+  /* Footer */
+  .footer { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+  .footer-links { display: flex; gap: 16px; }
+  .footer-links a { font-size: 12px; color: var(--text3); text-decoration: none; transition: color 0.15s; }
+  .footer-links a:hover { color: var(--text2); }
+  .footer-copy { font-size: 12px; color: var(--text3); }
+
+  /* Responsive */
+  @media (max-width: 480px) {
+    .hero-title { font-size: 22px; }
+    .amount-big { font-size: 26px; }
+    .pricing-top { flex-direction: column-reverse; }
+    .pricing-amount { text-align: left; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+  <header class="header">
+    <div class="logo-row">
+      <div class="logo">✦</div>
+      <span class="brand">clean<span>-vibe</span></span>
+    </div>
+    <a href="https://triple-moon-goddess.github.io/clean-vibe/" class="back-link">
+      ← back to app
+    </a>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-label">Commercial License</div>
+    <h1 class="hero-title">Ship cleaner code.<br>At work, without limits.</h1>
+    <p class="hero-sub">
+      clean-vibe is free for personal and open-source use. Commercial use — at a company, agency, or on client work — requires a subscription.
+    </p>
+  </section>
+
+  <!-- Pricing card -->
+  <div class="pricing-card">
+    <div class="pricing-top">
+      <div>
+        <div class="pricing-name">Commercial License</div>
+        <div class="pricing-desc">Per developer seat · billed annually</div>
+      </div>
+      <div class="pricing-amount">
+        <div class="amount-big"><sub>$</sub><span id="total-price">XX</span></div>
+        <div class="amount-period" id="period-note">per seat / year</div>
+      </div>
+    </div>
+
+    <div class="features">
+      <div class="feature">
+        <span class="feature-check">✓</span>
+        <span class="feature-text"><strong>Unlimited commercial scans</strong> — no restrictions on repos, runs, or team usage</span>
+      </div>
+      <div class="feature">
+        <span class="feature-check">✓</span>
+        <span class="feature-text"><strong>Two-pass AI analysis</strong> — Haiku triage + Sonnet deep review on blockers</span>
+      </div>
+      <div class="feature">
+        <span class="feature-check">✓</span>
+        <span class="feature-text"><strong>Full violation reporting</strong> — blockers, warnings, suggestions + markdown export</span>
+      </div>
+      <div class="feature">
+        <span class="feature-check">✓</span>
+        <span class="feature-text"><strong>Martin Clean Code + STANDARDS.md</strong> enforcement</span>
+      </div>
+      <div class="feature">
+        <span class="feature-check">✓</span>
+        <span class="feature-text"><strong>All future updates</strong> included for the license year</span>
+      </div>
+      <div class="feature">
+        <span class="feature-check">✓</span>
+        <span class="feature-text"><strong>Email support</strong> — direct access to the maintainer</span>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Seat selector -->
+    <div class="seat-row">
+      <div>
+        <div class="seat-label">Number of developer seats</div>
+        <div class="seat-price-note" id="seat-price-note">$XX × 1 seat</div>
+      </div>
+      <div class="seat-selector">
+        <button class="seat-btn" id="btn-minus" onclick="adjustSeats(-1)">−</button>
+        <span class="seat-count" id="seat-count">1</span>
+        <button class="seat-btn" onclick="adjustSeats(1)">+</button>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <a href="#" id="checkout-btn" class="cta-btn" onclick="handleCheckout(event)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+      Subscribe — $<span id="btn-price">XX</span>/yr
+    </a>
+    <div class="stripe-note">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      Secured by <span class="stripe-logo">Stripe</span> · cancel anytime
+    </div>
+  </div>
+
+  <!-- Free tier reminder -->
+  <div class="free-card">
+    <div class="free-top">
+      <span class="free-name">Non-commercial / Open Source</span>
+      <span class="free-badge">Always free</span>
+    </div>
+    <div class="free-features">
+      <div class="feature">
+        <span class="feature-check" style="color:var(--text3)">✓</span>
+        <span class="feature-text">Personal projects, learning, open-source repos</span>
+      </div>
+      <div class="feature">
+        <span class="feature-check" style="color:var(--text3)">✓</span>
+        <span class="feature-text">Full functionality — no feature gating</span>
+      </div>
+      <div class="feature">
+        <span class="feature-check" style="color:var(--text3)">✓</span>
+        <span class="feature-text">Bring your own Anthropic API key</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- FAQ -->
+  <section class="faq-section">
+    <div class="section-label">Frequently asked questions</div>
+
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        What counts as "commercial use"?
+        <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-a">
+        Any use of clean-vibe where you or your organization derive commercial benefit — including scanning codebases at a company, using it in agency client work, or as part of a paid product or service. Personal projects and open-source repos are free forever.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        How does per-seat licensing work?
+        <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-a">
+        One seat covers one developer running clean-vibe commercially. If three developers at your company use it, you need three seats. There's no DRM or enforcement mechanism — it's an honor system backed by a fair license.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        Do I need to supply my own Anthropic API key?
+        <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-a">
+        Yes. clean-vibe is a client-side tool — your API key is used directly in your browser and never sent to any server other than Anthropic's. The commercial license covers the right to use the software commercially; Anthropic API costs are separate and billed directly by Anthropic.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        Can I cancel my subscription?
+        <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-a">
+        Yes, any time via the Stripe customer portal. Your license remains active until the end of the paid period. No refunds on partial years, but you'll never be charged again after cancellation.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        Is there a team or enterprise plan?
+        <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-a">
+        Use the seat selector above for teams. For large orgs (10+ seats), custom invoicing, or enterprise agreements, <a href="mailto:hello@triplemoongoddess.com">get in touch</a>.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        What happens after I subscribe?
+        <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-a">
+        You'll receive a receipt and license confirmation from Stripe. That's your proof of license. There's no activation key or account to create — just keep using clean-vibe as you already do.
+      </div>
+    </div>
+
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-links">
+      <a href="https://github.com/Triple-Moon-Goddess/clean-vibe" target="_blank">GitHub</a>
+      <a href="https://triple-moon-goddess.github.io/clean-vibe/">App</a>
+      <a href="mailto:hello@triplemoongoddess.com">Contact</a>
+    </div>
+    <span class="footer-copy">© 2025 Triple Moon Goddess</span>
+  </footer>
+
+</div>
+
+<script>
+  // ── CONFIG ──────────────────────────────────────────────────────────
+  // Replace with your actual Stripe Payment Link URL and per-seat price.
+  const PRICE_PER_SEAT = 100;
+  const STRIPE_LINK_BASE = "https://buy.stripe.com/9B6bJ24IS1aQfMw8HH18c00";
+  // ────────────────────────────────────────────────────────────────────
+
+  let seats = 1;
+
+  function fmt(n) {
+    return n === 0 ? "XX" : n.toLocaleString();
+  }
+
+  function updateUI() {
+    const total = PRICE_PER_SEAT * seats;
+    document.getElementById("seat-count").textContent = seats;
+    document.getElementById("total-price").textContent = fmt(total);
+    document.getElementById("btn-price").textContent = fmt(total);
+    document.getElementById("seat-price-note").textContent =
+      `$${fmt(PRICE_PER_SEAT)} × ${seats} seat${seats > 1 ? "s" : ""}`;
+    document.getElementById("period-note").textContent =
+      seats > 1 ? `total / year (${seats} seats)` : "per seat / year";
+    document.getElementById("btn-minus").disabled = seats <= 1;
+  }
+
+  function adjustSeats(delta) {
+    seats = Math.max(1, seats + delta);
+    updateUI();
+  }
+
+  function handleCheckout(e) {
+    e.preventDefault();
+    if (!STRIPE_LINK_BASE.includes("REPLACE_WITH_LINK")) {
+      // Append quantity param if Stripe link supports it
+      const url = seats > 1
+        ? `${STRIPE_LINK_BASE}?quantity=${seats}`
+        : STRIPE_LINK_BASE;
+      window.open(url, "_blank", "noopener");
+    } else {
+      alert("Stripe link not configured yet — replace STRIPE_LINK_BASE in the script.");
+    }
+  }
+
+  function toggleFaq(btn) {
+    const item = btn.closest(".faq-item");
+    const wasOpen = item.classList.contains("open");
+    document.querySelectorAll(".faq-item.open").forEach(el => el.classList.remove("open"));
+    if (!wasOpen) item.classList.add("open");
+  }
+
+  updateUI();
+</script>
+</body>
+</html>
