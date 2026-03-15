@@ -4,7 +4,7 @@
 
 Traverses any GitHub repo, analyzes every source file against Robert C. Martin's *Clean Code* principles, tags violations by severity (blocker / warning / suggestion), deep-dives blockers with a Sonnet pass, and produces an interactive filterable report plus a downloadable markdown file.
 
-Built by [Triple Moon Goddess](https://triplemoongoddess.com) · Free for non-commercial use · [Commercial license](https://triplemoongoddess.com/clean-vibe/license)
+Built by [Triple Moon Goddess](https://triplemoongoddess.com) · Free for non-commercial use · [Commercial license](https://triple-moon-goddess.github.io/clean-vibe/license.html)
 
 ---
 
@@ -85,4 +85,4 @@ Roadmap: GitHub Action, VS Code extension, JSON/CSV export, additional languages
 Free for non-commercial use. See [LICENSE](LICENSE).
 
 Commercial use requires an annual subscription.
-→ [Purchase license](https://triplemoongoddess.com/clean-vibe/license) · lisa@triplemoongoddess.com
+→ [Purchase license](https://triple-moon-goddess.github.io/clean-vibe/license.html) · lisa@triplemoongoddess.com
