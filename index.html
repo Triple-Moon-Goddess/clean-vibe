@@ -464,9 +464,19 @@ async function ghGet(path) {
   return res.json();
 }
 
-async function fetchContent(path) {
-  const data = await ghGet(`/repos/${S.repo}/contents/${encodeURIComponent(path)}?ref=${S.branch}`);
-  return atob(data.content.replace(/\n/g, ''));
+async function fetchContent(path, retries = 3) {
+  for (let attempt = 0; attempt < retries; attempt++) {
+    try {
+      const data = await ghGet(`/repos/${S.repo}/contents/${encodeURIComponent(path)}?ref=${S.branch}`);
+      return atob(data.content.replace(/\n/g, ''));
+    } catch(e) {
+      if (attempt < retries - 1) {
+        await new Promise(r => setTimeout(r, 2000 * (attempt + 1)));
+      } else {
+        throw e;
+      }
+    }
+  }
 }
 
 // ─── Connect + estimate ───────────────────────────────────────────────────────
@@ -743,7 +753,7 @@ async function doSonnetPass() {
     }
 
     persist();
-    await new Promise(r => setTimeout(r, 250));
+    await new Promise(r => setTimeout(r, 1000));
   }
 
   document.getElementById('sonnet-progress').style.width = '100%';
