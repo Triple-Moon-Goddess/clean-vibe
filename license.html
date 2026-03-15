@@ -40,9 +40,8 @@
     min-height: 100vh;
   }
 
-  .app { max-width: 680px; margin: 0 auto; padding: 2rem 1.5rem 6rem; }
+  .app { max-width: 760px; margin: 0 auto; padding: 2rem 1.5rem 6rem; }
 
-  /* Header */
   .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 3rem; flex-wrap: wrap; gap: 12px; }
   .logo-row { display: flex; align-items: center; gap: 12px; }
   .logo { width: 36px; height: 36px; background: var(--blue-bg); border: 1px solid rgba(79,142,247,0.3); border-radius: var(--radius); display: flex; align-items: center; justify-content: center; font-size: 16px; }
@@ -51,78 +50,80 @@
   .back-link { font-size: 12px; color: var(--text2); text-decoration: none; display: flex; align-items: center; gap: 5px; transition: color 0.15s; }
   .back-link:hover { color: var(--text); }
 
-  /* Hero */
   .hero { margin-bottom: 2.5rem; }
   .hero-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.1em; color: var(--blue); margin-bottom: 10px; }
   .hero-title { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; color: var(--text); line-height: 1.25; margin-bottom: 12px; }
-  .hero-sub { font-size: 15px; color: var(--text2); line-height: 1.65; max-width: 520px; }
+  .hero-sub { font-size: 15px; color: var(--text2); line-height: 1.65; max-width: 560px; }
 
-  /* Pricing card */
-  .pricing-card {
+  .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 12px; }
+
+  .tier-card {
     background: var(--bg2);
-    border: 1px solid rgba(79,142,247,0.25);
+    border: 1px solid var(--border);
     border-radius: var(--radius-lg);
-    padding: 1.75rem;
-    margin-bottom: 1.25rem;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
     position: relative;
     overflow: hidden;
+    transition: border-color 0.2s;
   }
-  .pricing-card::before {
+  .tier-card:hover { border-color: var(--border2); }
+  .tier-card.featured { border-color: rgba(79,142,247,0.35); }
+  .tier-card.featured::before {
     content: '';
     position: absolute;
     top: 0; left: 0; right: 0;
     height: 2px;
     background: linear-gradient(90deg, var(--blue), var(--purple));
   }
-  .pricing-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 1.5rem; }
-  .pricing-name { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
-  .pricing-desc { font-size: 12px; color: var(--text2); }
-  .pricing-amount { text-align: right; flex-shrink: 0; }
-  .amount-big { font-size: 32px; font-weight: 700; letter-spacing: -1px; color: var(--text); line-height: 1; }
-  .amount-big sub { font-size: 16px; font-weight: 500; vertical-align: baseline; color: var(--text2); letter-spacing: 0; }
-  .amount-period { font-size: 12px; color: var(--text3); margin-top: 3px; }
 
-  .features { display: flex; flex-direction: column; gap: 9px; margin-bottom: 1.5rem; }
-  .feature { display: flex; align-items: flex-start; gap: 9px; }
-  .feature-check { color: var(--green); font-size: 13px; flex-shrink: 0; margin-top: 1px; }
-  .feature-text { font-size: 13px; color: var(--text2); line-height: 1.5; }
-  .feature-text strong { color: var(--text); font-weight: 500; }
+  .tier-badge {
+    font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;
+    padding: 2px 8px; border-radius: 20px;
+    background: var(--blue-bg); color: var(--blue);
+    border: 1px solid rgba(79,142,247,0.25);
+    display: inline-flex; align-self: flex-start;
+    margin-bottom: 12px;
+  }
+  .tier-badge.popular { background: var(--amber-bg); color: var(--amber); border-color: rgba(245,166,35,0.25); }
 
-  .divider { border: none; border-top: 1px solid var(--border); margin: 1.25rem 0; }
+  .tier-name { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .tier-who { font-size: 12px; color: var(--text2); margin-bottom: 16px; line-height: 1.5; }
 
-  /* Per-seat note */
-  .seat-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 1.25rem; }
-  .seat-label { font-size: 12px; color: var(--text2); }
-  .seat-selector { display: flex; align-items: center; gap: 8px; }
-  .seat-btn { width: 26px; height: 26px; border-radius: 6px; border: 1px solid var(--border2); background: var(--bg3); color: var(--text); font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.12s; font-family: inherit; line-height: 1; }
-  .seat-btn:hover { border-color: var(--blue); color: var(--blue); }
-  .seat-count { font-size: 14px; font-weight: 600; color: var(--text); min-width: 24px; text-align: center; }
-  .seat-price-note { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .tier-price { margin-bottom: 16px; }
+  .price-big { font-size: 30px; font-weight: 700; letter-spacing: -1px; color: var(--text); line-height: 1; }
+  .price-big sub { font-size: 15px; font-weight: 500; vertical-align: baseline; color: var(--text2); letter-spacing: 0; }
+  .price-period { font-size: 11px; color: var(--text3); margin-top: 3px; }
 
-  /* CTA */
-  .cta-btn {
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-    width: 100%; padding: 14px 20px;
-    background: var(--blue); color: #fff;
-    border: none; border-radius: var(--radius);
-    font-size: 14px; font-weight: 600; font-family: inherit;
+  .tier-features { display: flex; flex-direction: column; gap: 7px; margin-bottom: 20px; flex: 1; }
+  .tf { display: flex; align-items: flex-start; gap: 7px; }
+  .tf-check { color: var(--green); font-size: 12px; flex-shrink: 0; margin-top: 2px; }
+  .tf-text { font-size: 12px; color: var(--text2); line-height: 1.5; }
+  .tf-text strong { color: var(--text); font-weight: 500; }
+
+  .tier-cta {
+    display: flex; align-items: center; justify-content: center; gap: 7px;
+    width: 100%; padding: 11px 16px;
+    background: var(--bg3); color: var(--text2);
+    border: 1px solid var(--border2); border-radius: var(--radius);
+    font-size: 13px; font-weight: 500; font-family: inherit;
     cursor: pointer; text-decoration: none;
     transition: all 0.15s;
-    letter-spacing: -0.1px;
   }
-  .cta-btn:hover { opacity: 0.88; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(79,142,247,0.3); }
-  .cta-btn:active { transform: translateY(0); }
-  .stripe-note { display: flex; align-items: center; justify-content: center; gap: 5px; margin-top: 10px; font-size: 11px; color: var(--text3); }
-  .stripe-logo { font-size: 11px; font-weight: 700; color: var(--text3); letter-spacing: -0.3px; }
+  .tier-cta:hover { color: var(--text); border-color: var(--text3); }
+  .tier-cta.primary { background: var(--blue); color: #fff; border-color: transparent; }
+  .tier-cta.primary:hover { opacity: 0.88; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(79,142,247,0.3); }
+  .tier-cta:active { transform: translateY(0); }
 
-  /* Free card */
-  .free-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; margin-bottom: 1.25rem; }
+  .stripe-note { display: flex; align-items: center; justify-content: center; gap: 5px; margin-top: 10px; font-size: 11px; color: var(--text3); }
+  .stripe-logo { font-weight: 700; }
+
+  .free-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; margin-top: 1.25rem; }
   .free-top { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 1rem; }
   .free-name { font-size: 13px; font-weight: 600; color: var(--text); }
   .free-badge { font-size: 11px; padding: 2px 9px; border-radius: 20px; background: var(--green-bg); color: var(--green); border: 1px solid rgba(62,207,142,0.2); font-weight: 500; }
-  .free-features { display: flex; flex-direction: column; gap: 7px; }
 
-  /* FAQ */
   .faq-section { margin-top: 2.5rem; }
   .section-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text3); margin-bottom: 1rem; }
   .faq-item { border-bottom: 1px solid var(--border); }
@@ -135,200 +136,151 @@
   .faq-a a { color: var(--blue); text-decoration: none; }
   .faq-a a:hover { text-decoration: underline; }
 
-  /* Footer */
   .footer { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
   .footer-links { display: flex; gap: 16px; }
   .footer-links a { font-size: 12px; color: var(--text3); text-decoration: none; transition: color 0.15s; }
   .footer-links a:hover { color: var(--text2); }
   .footer-copy { font-size: 12px; color: var(--text3); }
 
-  /* Responsive */
-  @media (max-width: 480px) {
+  @media (max-width: 600px) {
+    .pricing-grid { grid-template-columns: 1fr; }
     .hero-title { font-size: 22px; }
-    .amount-big { font-size: 26px; }
-    .pricing-top { flex-direction: column-reverse; }
-    .pricing-amount { text-align: left; }
+  }
+  @media (min-width: 601px) and (max-width: 720px) {
+    .pricing-grid { grid-template-columns: 1fr 1fr; }
+    .tier-card:last-child { grid-column: 1 / -1; }
   }
 </style>
 </head>
 <body>
 <div class="app">
 
-  <!-- Header -->
   <header class="header">
     <div class="logo-row">
       <div class="logo">✦</div>
       <span class="brand">clean<span>-vibe</span></span>
     </div>
-    <a href="https://triple-moon-goddess.github.io/clean-vibe/" class="back-link">
-      ← back to app
-    </a>
+    <a href="https://triple-moon-goddess.github.io/clean-vibe/" class="back-link">← back to app</a>
   </header>
 
-  <!-- Hero -->
   <section class="hero">
     <div class="hero-label">Commercial License</div>
     <h1 class="hero-title">Ship cleaner code.<br>At work, without limits.</h1>
-    <p class="hero-sub">
-      clean-vibe is free for personal and open-source use. Commercial use — at a company, agency, or on client work — requires a subscription.
-    </p>
+    <p class="hero-sub">clean-vibe is free for personal and open-source use. Commercial use — at a company, agency, or on client work — requires a subscription.</p>
   </section>
 
-  <!-- Pricing card -->
-  <div class="pricing-card">
-    <div class="pricing-top">
-      <div>
-        <div class="pricing-name">Commercial License</div>
-        <div class="pricing-desc">Per developer seat · billed annually</div>
+  <div class="pricing-grid">
+
+    <div class="tier-card">
+      <span class="tier-badge">Individual</span>
+      <div class="tier-name">Solo Developer</div>
+      <div class="tier-who">One developer, commercial use</div>
+      <div class="tier-price">
+        <div class="price-big"><sub>$</sub>100</div>
+        <div class="price-period">per year</div>
       </div>
-      <div class="pricing-amount">
-        <div class="amount-big"><sub>$</sub><span id="total-price">XX</span></div>
-        <div class="amount-period" id="period-note">per seat / year</div>
+      <div class="tier-features">
+        <div class="tf"><span class="tf-check">✓</span><span class="tf-text"><strong>1 developer seat</strong></span></div>
+        <div class="tf"><span class="tf-check">✓</span><span class="tf-text">Unlimited commercial scans</span></div>
+        <div class="tf"><span class="tf-check">✓</span><span class="tf-text">Two-pass AI analysis</span></div>
+        <div class="tf"><span class="tf-check">✓</span><span class="tf-text">Full violation reporting + export</span></div>
+        <div class="tf"><span class="tf-check">✓</span><span class="tf-text">All updates for the year</span></div>
+        <div class="tf"><span class="tf-check">✓</span><span class="tf-text">Email support</span></div>
       </div>
+      <a href="https://buy.stripe.com/9B6bJ24IS1aQfMw8HH18c00" target="_blank" rel="noopener" class="tier-cta">Subscribe — $100/yr</a>
     </div>
 
-    <div class="features">
-      <div class="feature">
-        <span class="feature-check">✓</span>
-        <span class="feature-text"><strong>Unlimited commercial scans</strong> — no restrictions on repos, runs, or team usage</span>
+    <div class="tier-card featured">
+      <span class="tier-badge popular">Most popular</span>
+      <div class="tier-name">Team</div>
+      <div class="tier-who">Up to 10 developers</div>
+      <div class="tier-price">
+        <div class="price-big"><sub>$</sub>500</div>
+        <div class="price-period">per year · up to 10 seats</div>
       </div>
-      <div class="feature">
-        <span class="feature-check">✓</span>
-        <span class="feature-text"><strong>Two-pass AI analysis</strong> — Haiku triage + Sonnet deep review on blockers</span>
+      <div class="tier-features">
+        <div class="tf"><span class="tf-check">✓</span><span class="tf-text"><strong>Up to 10 developer seats</strong></span></div>
+        <div class="tf"><span class="tf-check">✓</span><span class="tf-text">Unlimited commercial scans</span></div>
+        <div class="tf"><span class="tf-check">✓</span><span class="tf-text">Two-pass AI analysis</span></div>
+        <div class="tf"><span class="tf-check">✓</span><span class="tf-text">Full violation reporting + export</span></div>
+        <div class="tf"><span class="tf-check">✓</span><span class="tf-text">All updates for the year</span></div>
+        <div class="tf"><span class="tf-check">✓</span><span class="tf-text">Priority email support</span></div>
       </div>
-      <div class="feature">
-        <span class="feature-check">✓</span>
-        <span class="feature-text"><strong>Full violation reporting</strong> — blockers, warnings, suggestions + markdown export</span>
-      </div>
-      <div class="feature">
-        <span class="feature-check">✓</span>
-        <span class="feature-text"><strong>Martin Clean Code + STANDARDS.md</strong> enforcement</span>
-      </div>
-      <div class="feature">
-        <span class="feature-check">✓</span>
-        <span class="feature-text"><strong>All future updates</strong> included for the license year</span>
-      </div>
-      <div class="feature">
-        <span class="feature-check">✓</span>
-        <span class="feature-text"><strong>Email support</strong> — direct access to the maintainer</span>
-      </div>
+      <a href="https://buy.stripe.com/6oUeVefnw3iY7g07DD18c01" target="_blank" rel="noopener" class="tier-cta primary">Subscribe — $500/yr</a>
     </div>
 
-    <div class="divider"></div>
-
-    <!-- Seat selector -->
-    <div class="seat-row">
-      <div>
-        <div class="seat-label">Number of developer seats</div>
-        <div class="seat-price-note" id="seat-price-note">$XX × 1 seat</div>
+    <div class="tier-card">
+      <span class="tier-badge">Organization</span>
+      <div class="tier-name">Organization</div>
+      <div class="tier-who">Unlimited developers</div>
+      <div class="tier-price">
+        <div class="price-big"><sub>$</sub>1,500</div>
+        <div class="price-period">per year · unlimited seats</div>
       </div>
-      <div class="seat-selector">
-        <button class="seat-btn" id="btn-minus" onclick="adjustSeats(-1)">−</button>
-        <span class="seat-count" id="seat-count">1</span>
-        <button class="seat-btn" onclick="adjustSeats(1)">+</button>
+      <div class="tier-features">
+        <div class="tf"><span class="tf-check">✓</span><span class="tf-text"><strong>Unlimited developer seats</strong></span></div>
+        <div class="tf"><span class="tf-check">✓</span><span class="tf-text">Unlimited commercial scans</span></div>
+        <div class="tf"><span class="tf-check">✓</span><span class="tf-text">Two-pass AI analysis</span></div>
+        <div class="tf"><span class="tf-check">✓</span><span class="tf-text">Full violation reporting + export</span></div>
+        <div class="tf"><span class="tf-check">✓</span><span class="tf-text">All updates for the year</span></div>
+        <div class="tf"><span class="tf-check">✓</span><span class="tf-text">Priority email support</span></div>
       </div>
+      <a href="https://buy.stripe.com/28EaEY4IS6va8k45vv18c02" target="_blank" rel="noopener" class="tier-cta">Subscribe — $1,500/yr</a>
     </div>
 
-    <!-- CTA -->
-    <a href="#" id="checkout-btn" class="cta-btn" onclick="handleCheckout(event)">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-      Subscribe — $<span id="btn-price">XX</span>/yr
-    </a>
-    <div class="stripe-note">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-      Secured by <span class="stripe-logo">Stripe</span> · cancel anytime
-    </div>
   </div>
 
-  <!-- Free tier reminder -->
+  <div class="stripe-note">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    Secured by <span class="stripe-logo">Stripe</span> · cancel anytime · receipt sent on purchase
+  </div>
+
   <div class="free-card">
     <div class="free-top">
       <span class="free-name">Non-commercial / Open Source</span>
       <span class="free-badge">Always free</span>
     </div>
-    <div class="free-features">
-      <div class="feature">
-        <span class="feature-check" style="color:var(--text3)">✓</span>
-        <span class="feature-text">Personal projects, learning, open-source repos</span>
-      </div>
-      <div class="feature">
-        <span class="feature-check" style="color:var(--text3)">✓</span>
-        <span class="feature-text">Full functionality — no feature gating</span>
-      </div>
-      <div class="feature">
-        <span class="feature-check" style="color:var(--text3)">✓</span>
-        <span class="feature-text">Bring your own Anthropic API key</span>
-      </div>
+    <div class="tier-features">
+      <div class="tf"><span class="tf-check" style="color:var(--text3)">✓</span><span class="tf-text">Personal projects, learning, open-source repos</span></div>
+      <div class="tf"><span class="tf-check" style="color:var(--text3)">✓</span><span class="tf-text">Full functionality — no feature gating</span></div>
+      <div class="tf"><span class="tf-check" style="color:var(--text3)">✓</span><span class="tf-text">Bring your own Anthropic API key</span></div>
     </div>
   </div>
 
-  <!-- FAQ -->
   <section class="faq-section">
     <div class="section-label">Frequently asked questions</div>
 
     <div class="faq-item">
-      <button class="faq-q" onclick="toggleFaq(this)">
-        What counts as "commercial use"?
-        <span class="faq-icon">+</span>
-      </button>
-      <div class="faq-a">
-        Any use of clean-vibe where you or your organization derive commercial benefit — including scanning codebases at a company, using it in agency client work, or as part of a paid product or service. Personal projects and open-source repos are free forever.
-      </div>
+      <button class="faq-q" onclick="toggleFaq(this)">What counts as "commercial use"?<span class="faq-icon">+</span></button>
+      <div class="faq-a">Any use of clean-vibe where you or your organization derive commercial benefit — including scanning codebases at a company, using it in agency client work, or as part of a paid product or service. Personal projects and open-source repos are free forever.</div>
     </div>
 
     <div class="faq-item">
-      <button class="faq-q" onclick="toggleFaq(this)">
-        How does per-seat licensing work?
-        <span class="faq-icon">+</span>
-      </button>
-      <div class="faq-a">
-        One seat covers one developer running clean-vibe commercially. If three developers at your company use it, you need three seats. There's no DRM or enforcement mechanism — it's an honor system backed by a fair license.
-      </div>
+      <button class="faq-q" onclick="toggleFaq(this)">How do I count seats for the Team plan?<span class="faq-icon">+</span></button>
+      <div class="faq-a">One seat = one developer running clean-vibe commercially. The Team plan covers up to 10 developers. If you have more than 10, the Organization plan covers you with unlimited seats.</div>
     </div>
 
     <div class="faq-item">
-      <button class="faq-q" onclick="toggleFaq(this)">
-        Do I need to supply my own Anthropic API key?
-        <span class="faq-icon">+</span>
-      </button>
-      <div class="faq-a">
-        Yes. clean-vibe is a client-side tool — your API key is used directly in your browser and never sent to any server other than Anthropic's. The commercial license covers the right to use the software commercially; Anthropic API costs are separate and billed directly by Anthropic.
-      </div>
+      <button class="faq-q" onclick="toggleFaq(this)">Do I need to supply my own Anthropic API key?<span class="faq-icon">+</span></button>
+      <div class="faq-a">Yes. clean-vibe is a client-side tool — your API key is used directly in your browser and never sent to any server other than Anthropic's. The commercial license covers the right to use the software; Anthropic API costs are billed directly by Anthropic.</div>
     </div>
 
     <div class="faq-item">
-      <button class="faq-q" onclick="toggleFaq(this)">
-        Can I cancel my subscription?
-        <span class="faq-icon">+</span>
-      </button>
-      <div class="faq-a">
-        Yes, any time via the Stripe customer portal. Your license remains active until the end of the paid period. No refunds on partial years, but you'll never be charged again after cancellation.
-      </div>
+      <button class="faq-q" onclick="toggleFaq(this)">Can I cancel my subscription?<span class="faq-icon">+</span></button>
+      <div class="faq-a">Yes, any time via the Stripe customer portal. Your license remains active until the end of the paid period. No refunds on partial years, but you'll never be charged again after cancellation.</div>
     </div>
 
     <div class="faq-item">
-      <button class="faq-q" onclick="toggleFaq(this)">
-        Is there a team or enterprise plan?
-        <span class="faq-icon">+</span>
-      </button>
-      <div class="faq-a">
-        Use the seat selector above for teams. For large orgs (10+ seats), custom invoicing, or enterprise agreements, <a href="mailto:hello@triplemoongoddess.com">get in touch</a>.
-      </div>
+      <button class="faq-q" onclick="toggleFaq(this)">What happens after I subscribe?<span class="faq-icon">+</span></button>
+      <div class="faq-a">You'll receive a receipt and license confirmation from Stripe. That's your proof of license. There's no activation key or account to create — just keep using clean-vibe as you already do.</div>
     </div>
 
     <div class="faq-item">
-      <button class="faq-q" onclick="toggleFaq(this)">
-        What happens after I subscribe?
-        <span class="faq-icon">+</span>
-      </button>
-      <div class="faq-a">
-        You'll receive a receipt and license confirmation from Stripe. That's your proof of license. There's no activation key or account to create — just keep using clean-vibe as you already do.
-      </div>
+      <button class="faq-q" onclick="toggleFaq(this)">Need a custom plan or invoice?<span class="faq-icon">+</span></button>
+      <div class="faq-a">For enterprise agreements, custom invoicing, or volume pricing, <a href="mailto:hello@triplemoongoddess.com">get in touch</a>.</div>
     </div>
-
   </section>
 
-  <!-- Footer -->
   <footer class="footer">
     <div class="footer-links">
       <a href="https://github.com/Triple-Moon-Goddess/clean-vibe" target="_blank">GitHub</a>
@@ -339,58 +291,13 @@
   </footer>
 
 </div>
-
 <script>
-  // ── CONFIG ──────────────────────────────────────────────────────────
-  // Replace with your actual Stripe Payment Link URL and per-seat price.
-  const PRICE_PER_SEAT = 100;
-  const STRIPE_LINK_BASE = "https://buy.stripe.com/9B6bJ24IS1aQfMw8HH18c00";
-  // ────────────────────────────────────────────────────────────────────
-
-  let seats = 1;
-
-  function fmt(n) {
-    return n === 0 ? "XX" : n.toLocaleString();
-  }
-
-  function updateUI() {
-    const total = PRICE_PER_SEAT * seats;
-    document.getElementById("seat-count").textContent = seats;
-    document.getElementById("total-price").textContent = fmt(total);
-    document.getElementById("btn-price").textContent = fmt(total);
-    document.getElementById("seat-price-note").textContent =
-      `$${fmt(PRICE_PER_SEAT)} × ${seats} seat${seats > 1 ? "s" : ""}`;
-    document.getElementById("period-note").textContent =
-      seats > 1 ? `total / year (${seats} seats)` : "per seat / year";
-    document.getElementById("btn-minus").disabled = seats <= 1;
-  }
-
-  function adjustSeats(delta) {
-    seats = Math.max(1, seats + delta);
-    updateUI();
-  }
-
-  function handleCheckout(e) {
-    e.preventDefault();
-    if (!STRIPE_LINK_BASE.includes("REPLACE_WITH_LINK")) {
-      // Append quantity param if Stripe link supports it
-      const url = seats > 1
-        ? `${STRIPE_LINK_BASE}?quantity=${seats}`
-        : STRIPE_LINK_BASE;
-      window.open(url, "_blank", "noopener");
-    } else {
-      alert("Stripe link not configured yet — replace STRIPE_LINK_BASE in the script.");
-    }
-  }
-
   function toggleFaq(btn) {
     const item = btn.closest(".faq-item");
     const wasOpen = item.classList.contains("open");
     document.querySelectorAll(".faq-item.open").forEach(el => el.classList.remove("open"));
     if (!wasOpen) item.classList.add("open");
   }
-
-  updateUI();
 </script>
 </body>
 </html>
