@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>clean-vibe — AI Clean Code Scanner</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f1117;
+    --bg2: #181c27;
+    --bg3: #1e2333;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --text: #e8eaf0;
+    --text2: #8b90a0;
+    --text3: #555c70;
+    --blue: #4f8ef7;
+    --blue-bg: rgba(79,142,247,0.12);
+    --green: #3ecf8e;
+    --green-bg: rgba(62,207,142,0.1);
+    --amber: #f5a623;
+    --amber-bg: rgba(245,166,35,0.1);
+    --red: #e05c5c;
+    --red-bg: rgba(224,92,92,0.1);
+    --purple: #a78bfa;
+    --purple-bg: rgba(167,139,250,0.1);
+    --radius: 8px;
+    --radius-lg: 12px;
+    --mono: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  .app { max-width: 1000px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+  /* Header */
+  .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; flex-wrap: wrap; gap: 12px; }
+  .logo-row { display: flex; align-items: center; gap: 12px; }
+  .logo { width: 36px; height: 36px; background: var(--blue-bg); border: 1px solid rgba(79,142,247,0.3); border-radius: var(--radius); display: flex; align-items: center; justify-content: center; font-size: 16px; }
+  .brand { font-size: 20px; font-weight: 600; color: var(--text); letter-spacing: -0.3px; }
+  .brand span { color: var(--blue); }
+  .header-links { display: flex; gap: 14px; }
+  .header-links a { font-size: 12px; color: var(--text2); text-decoration: none; }
+  .header-links a:hover { color: var(--text); }
+
+  /* Cards */
+  .card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 12px; }
+  .card-title { font-size: 12px; font-weight: 500; color: var(--text2); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px; }
+
+  /* Inputs */
+  input[type=text], input[type=password] {
+    width: 100%; font-size: 13px; padding: 9px 11px;
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: var(--radius); color: var(--text);
+    margin-bottom: 8px; transition: border-color 0.15s;
+    font-family: inherit;
+  }
+  input:focus { outline: none; border-color: rgba(79,142,247,0.5); }
+  input::placeholder { color: var(--text3); }
+
+  /* Buttons */
+  .btn { padding: 8px 16px; font-size: 13px; font-weight: 500; border: none; border-radius: var(--radius); cursor: pointer; transition: all 0.15s; font-family: inherit; }
+  .btn-primary { background: var(--blue); color: #fff; }
+  .btn-primary:hover { opacity: 0.88; }
+  .btn-primary:disabled { opacity: 0.35; cursor: not-allowed; }
+  .btn-outline { background: transparent; border: 1px solid var(--border2); color: var(--text2); }
+  .btn-outline:hover { border-color: var(--border2); background: var(--bg3); color: var(--text); }
+  .btn-danger { background: var(--red-bg); border: 1px solid rgba(224,92,92,0.3); color: var(--red); }
+  .btn-purple { background: var(--purple-bg); border: 1px solid rgba(167,139,250,0.3); color: var(--purple); }
+  .btn-purple:hover { opacity: 0.85; }
+  .btn-purple:disabled { opacity: 0.35; cursor: not-allowed; }
+  .btn-green { background: var(--green-bg); border: 1px solid rgba(62,207,142,0.3); color: var(--green); }
+
+  /* Row */
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
+
+  /* Dot */
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--border2); flex-shrink: 0; }
+  .dot.running { background: var(--amber); animation: pulse 1s infinite; }
+  .dot.done { background: var(--green); }
+  .dot.error { background: var(--red); }
+  @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.3} }
+  .status-text { font-size: 12px; color: var(--text2); }
+
+  /* Progress */
+  .progress-wrap { background: var(--bg3); border-radius: 4px; height: 4px; margin: 8px 0; overflow: hidden; }
+  .progress-bar { height: 100%; background: var(--blue); border-radius: 4px; transition: width 0.4s; }
+
+  /* Phase */
+  .phase { display: none; }
+  .phase.active { display: block; }
+
+  /* Dir list */
+  .dir-list { display: flex; flex-direction: column; gap: 5px; max-height: 340px; overflow-y: auto; margin-bottom: 12px; }
+  .dir-row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: var(--bg3); border-radius: var(--radius); border: 1px solid var(--border); cursor: pointer; transition: border-color 0.12s; }
+  .dir-row:hover { border-color: var(--border2); }
+  .dir-row.selected { border-color: rgba(79,142,247,0.5); background: var(--blue-bg); }
+  .dir-row.scanned { opacity: 0.45; cursor: default; }
+  .dir-name { font-size: 12px; font-family: var(--mono); color: var(--text); flex: 1; }
+  .dir-meta { font-size: 11px; color: var(--text2); white-space: nowrap; }
+  .badge { font-size: 11px; padding: 2px 7px; border-radius: 20px; white-space: nowrap; }
+  .badge-blue { background: var(--blue-bg); color: var(--blue); border: 1px solid rgba(79,142,247,0.2); }
+  .badge-green { background: var(--green-bg); color: var(--green); border: 1px solid rgba(62,207,142,0.2); }
+  .badge-gray { background: var(--bg3); color: var(--text2); border: 1px solid var(--border); }
+
+  /* Stats */
+  .stats-row { display: flex; gap: 20px; flex-wrap: wrap; margin: 12px 0; }
+  .stat { display: flex; flex-direction: column; gap: 2px; }
+  .stat-n { font-size: 24px; font-weight: 600; letter-spacing: -0.5px; }
+  .stat-n.red { color: var(--red); }
+  .stat-n.amber { color: var(--amber); }
+  .stat-n.gray { color: var(--text2); }
+  .stat-n.blue { color: var(--blue); }
+  .stat-n.green { color: var(--green); }
+  .stat-l { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.04em; }
+
+  /* Scan log */
+  .scan-log { font-family: var(--mono); font-size: 11px; color: var(--text2); max-height: 140px; overflow-y: auto; background: var(--bg); border-radius: var(--radius); padding: 10px 12px; margin-top: 10px; border: 1px solid var(--border); }
+  .log-line { line-height: 1.9; }
+  .log-ok { color: var(--green); }
+  .log-skip { color: var(--text3); }
+  .log-err { color: var(--red); }
+  .log-sonnet { color: var(--purple); }
+
+  /* Filter chips */
+  .filter-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; align-items: center; }
+  .chip { font-size: 12px; padding: 4px 10px; border-radius: 20px; border: 1px solid var(--border); background: transparent; color: var(--text2); cursor: pointer; transition: all 0.12s; font-family: inherit; }
+  .chip.active.blocker { background: var(--red-bg); color: var(--red); border-color: rgba(224,92,92,0.3); }
+  .chip.active.warning { background: var(--amber-bg); color: var(--amber); border-color: rgba(245,166,35,0.3); }
+  .chip.active.suggestion { background: var(--bg3); color: var(--text); border-color: var(--border2); }
+  .chip.active.clean { background: var(--green-bg); color: var(--green); border-color: rgba(62,207,142,0.3); }
+  .search-input { font-size: 12px; padding: 5px 10px; background: var(--bg3); border: 1px solid var(--border); border-radius: 20px; color: var(--text); margin-left: auto; font-family: inherit; }
+  .search-input:focus { outline: none; border-color: var(--border2); }
+  .search-input::placeholder { color: var(--text3); }
+
+  /* File groups */
+  .file-group { margin-bottom: 6px; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .file-header { display: flex; align-items: center; gap: 8px; padding: 9px 12px; background: var(--bg3); cursor: pointer; transition: background 0.12s; }
+  .file-header:hover { background: var(--bg2); }
+  .file-path { font-size: 12px; font-family: var(--mono); color: var(--text); flex: 1; }
+  .file-counts { display: flex; gap: 5px; }
+  .v-count { font-size: 11px; padding: 1px 6px; border-radius: var(--radius); font-weight: 600; }
+  .v-count.blocker { background: var(--red-bg); color: var(--red); }
+  .v-count.warning { background: var(--amber-bg); color: var(--amber); }
+  .v-count.suggestion { background: var(--bg3); color: var(--text2); border: 1px solid var(--border); }
+  .v-count.clean { background: var(--green-bg); color: var(--green); }
+  .v-count.sonnet { background: var(--purple-bg); color: var(--purple); }
+  .file-body { display: none; padding: 0 12px 10px; background: var(--bg2); }
+  .file-body.open { display: block; }
+  .file-summary { font-size: 12px; color: var(--text2); padding: 8px 0 6px; border-bottom: 1px solid var(--border); margin-bottom: 6px; }
+
+  /* Violations */
+  .violation { display: flex; gap: 8px; align-items: flex-start; padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .violation:last-child { border-bottom: none; }
+  .v-badge { font-size: 11px; padding: 2px 8px; border-radius: var(--radius); font-weight: 500; min-width: 76px; text-align: center; white-space: nowrap; }
+  .v-badge.blocker { background: var(--red-bg); color: var(--red); border: 1px solid rgba(224,92,92,0.25); }
+  .v-badge.warning { background: var(--amber-bg); color: var(--amber); border: 1px solid rgba(245,166,35,0.25); }
+  .v-badge.suggestion { background: var(--bg3); color: var(--text2); border: 1px solid var(--border); }
+  .v-body { flex: 1; min-width: 0; }
+  .v-issue { color: var(--text); line-height: 1.5; font-size: 13px; }
+  .v-meta { display: flex; gap: 6px; margin-top: 4px; flex-wrap: wrap; align-items: center; }
+  .v-principle { font-size: 11px; color: var(--text2); }
+  .v-section { font-size: 11px; color: var(--blue); background: var(--blue-bg); padding: 1px 6px; border-radius: var(--radius); }
+  .v-fix { font-size: 12px; color: var(--text2); margin-top: 4px; line-height: 1.5; }
+  .v-example { font-family: var(--mono); font-size: 11px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 10px; margin-top: 6px; color: var(--text2); white-space: pre-wrap; word-break: break-all; }
+  .v-root-cause { font-size: 12px; color: var(--purple); margin-top: 4px; font-style: italic; }
+
+  /* Sonnet section */
+  .sonnet-section { margin-top: 6px; padding: 8px 10px; background: var(--purple-bg); border: 1px solid rgba(167,139,250,0.2); border-radius: var(--radius); }
+  .sonnet-label { font-size: 11px; color: var(--purple); font-weight: 500; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.04em; }
+
+  /* Prior session */
+  .prior-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 12px; }
+
+  /* Est summary */
+  .est-box { font-size: 12px; color: var(--text2); padding: 8px 12px; background: var(--bg3); border-radius: var(--radius); margin-bottom: 12px; border: 1px solid var(--border); }
+
+  /* Divider */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
+
+  .empty { font-size: 13px; color: var(--text3); text-align: center; padding: 2rem 0; }
+
+  /* Sonnet pass card */
+  .sonnet-pass-card { background: var(--purple-bg); border: 1px solid rgba(167,139,250,0.25); border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 12px; }
+  .sonnet-pass-title { font-size: 14px; font-weight: 500; color: var(--purple); margin-bottom: 6px; }
+  .sonnet-pass-sub { font-size: 12px; color: var(--text2); margin-bottom: 12px; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <div class="logo-row">
+      <div class="logo">✦</div>
+      <div>
+        <div class="brand">clean<span>-vibe</span></div>
+      </div>
+    </div>
+    <div class="header-links">
+      <a href="https://github.com/triplemoongoddess/clean-vibe">GitHub</a>
+      <a href="https://triplemoongoddess.com/clean-vibe/license">Commercial license</a>
+    </div>
+  </div>
+
+  <!-- PHASE: CONNECT -->
+  <div id="phase-connect" class="phase active">
+    <div class="card">
+      <div class="card-title">Connect repository</div>
+      <input type="text" id="inp-repo" placeholder="owner/repo  —  e.g. facebook/react" />
+      <input type="text" id="inp-branch" placeholder="Branch (default: main)" />
+      <input type="password" id="inp-token" placeholder="GitHub personal access token  (repo scope)" />
+      <input type="password" id="inp-claude" placeholder="Anthropic API key  (sk-ant-...)" />
+      <div class="row">
+        <button class="btn btn-primary" id="btn-connect" onclick="doConnect()">Connect + estimate ↗</button>
+        <div class="dot" id="connect-dot"></div>
+        <span class="status-text" id="connect-status"></span>
+      </div>
+      <div id="connect-error" style="font-size:12px;color:var(--red);margin-top:4px;display:none;"></div>
+    </div>
+
+    <div id="prior-card" class="prior-card" style="display:none">
+      <div class="card-title">Previous session</div>
+      <div id="prior-summary" style="font-size:13px;color:var(--text2);margin-bottom:12px;"></div>
+      <div class="row">
+        <button class="btn btn-outline" onclick="loadPrior()">Resume + view report</button>
+        <button class="btn btn-danger" onclick="clearPrior()">Clear saved results</button>
+      </div>
+    </div>
+
+    <div style="font-size:12px;color:var(--text3);margin-top:16px;line-height:1.7;">
+      Free for non-commercial use. Commercial use requires a
+      <a href="https://triplemoongoddess.com/clean-vibe/license" style="color:var(--blue);text-decoration:none;">license</a>.
+      Your keys are used only in-browser and never transmitted anywhere except the respective APIs.
+    </div>
+  </div>
+
+  <!-- PHASE: ESTIMATE -->
+  <div id="phase-estimate" class="phase">
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+        <span style="font-size:15px;font-weight:600;color:var(--text)" id="repo-title"></span>
+        <button class="btn btn-outline" onclick="goConnect()">← Change repo</button>
+      </div>
+      <div class="est-box" id="est-summary"></div>
+      <div class="card-title">Select directories for this scan run</div>
+      <div class="row" style="margin-bottom:8px;">
+        <button class="btn btn-outline" onclick="selectAll()">Select all unscanned</button>
+        <button class="btn btn-outline" onclick="selectNone()">Clear</button>
+        <span class="status-text" id="sel-count" style="margin-left:4px;"></span>
+      </div>
+      <div class="dir-list" id="dir-list"></div>
+      <div class="row">
+        <button class="btn btn-primary" id="btn-scan" onclick="doScan()" disabled>Start scan ↗</button>
+        <span class="status-text" id="scan-est-label"></span>
+        <button class="btn btn-outline" onclick="goReport()" id="btn-view-report" style="display:none">View existing report →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE: SCANNING -->
+  <div id="phase-scan" class="phase">
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <span style="font-size:14px;font-weight:500;">Haiku pass — scanning all files</span>
+        <button class="btn btn-danger" onclick="stopScan()">Stop</button>
+      </div>
+      <div class="progress-wrap"><div class="progress-bar" id="scan-progress" style="width:0%"></div></div>
+      <div class="row" style="margin-bottom:6px;">
+        <div class="dot running"></div>
+        <span class="status-text" id="scan-status">Starting...</span>
+      </div>
+      <div class="stats-row">
+        <div class="stat"><span class="stat-n blue" id="live-files">0</span><span class="stat-l">files</span></div>
+        <div class="stat"><span class="stat-n red" id="live-b">0</span><span class="stat-l">blockers</span></div>
+        <div class="stat"><span class="stat-n amber" id="live-w">0</span><span class="stat-l">warnings</span></div>
+        <div class="stat"><span class="stat-n gray" id="live-s">0</span><span class="stat-l">suggestions</span></div>
+      </div>
+      <div class="scan-log" id="scan-log"></div>
+    </div>
+  </div>
+
+  <!-- PHASE: SONNET PASS -->
+  <div id="phase-sonnet" class="phase">
+    <div class="sonnet-pass-card">
+      <div class="sonnet-pass-title">✦ Sonnet deep analysis — blockers only</div>
+      <div class="sonnet-pass-sub" id="sonnet-sub"></div>
+      <div class="progress-wrap"><div class="progress-bar" id="sonnet-progress" style="width:0%;background:var(--purple)"></div></div>
+      <div class="row" style="margin-bottom:6px;">
+        <div class="dot running" style="background:var(--purple)"></div>
+        <span class="status-text" id="sonnet-status">Starting...</span>
+      </div>
+      <div class="scan-log" id="sonnet-log"></div>
+    </div>
+  </div>
+
+  <!-- PHASE: REPORT -->
+  <div id="phase-report" class="phase">
+
+    <!-- Sonnet CTA (shown after haiku, before sonnet runs) -->
+    <div id="sonnet-cta" class="sonnet-pass-card" style="display:none">
+      <div class="sonnet-pass-title">✦ Re-analyze blockers with Sonnet</div>
+      <div class="sonnet-pass-sub" id="sonnet-cta-sub"></div>
+      <div class="row">
+        <button class="btn btn-purple" id="btn-sonnet" onclick="doSonnetPass()">Run Sonnet pass ↗</button>
+        <span class="status-text">Adds root cause, code smell taxonomy, and refactored examples</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+        <span style="font-size:15px;font-weight:600;color:var(--text)" id="report-title">Report</span>
+        <div class="row" style="gap:8px;margin:0;">
+          <button class="btn btn-outline" onclick="goEstimate()">← Scan more</button>
+          <button class="btn btn-green" onclick="downloadReport()">Download .md</button>
+          <button class="btn btn-danger" onclick="clearPrior()">Clear all</button>
+        </div>
+      </div>
+
+      <div class="stats-row" style="margin-bottom:14px;">
+        <div class="stat"><span class="stat-n blue" id="r-files">0</span><span class="stat-l">files</span></div>
+        <div class="stat"><span class="stat-n red" id="r-b">0</span><span class="stat-l">blockers</span></div>
+        <div class="stat"><span class="stat-n amber" id="r-w">0</span><span class="stat-l">warnings</span></div>
+        <div class="stat"><span class="stat-n gray" id="r-s">0</span><span class="stat-l">suggestions</span></div>
+        <div class="stat"><span class="stat-n green" id="r-clean">0</span><span class="stat-l">clean</span></div>
+        <div class="stat"><span class="stat-n" style="color:var(--purple)" id="r-sonnet">0</span><span class="stat-l">sonnet analyzed</span></div>
+      </div>
+
+      <div class="filter-row">
+        <span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.04em;">Filter</span>
+        <button class="chip blocker active" data-f="blocker" onclick="toggleFilter(this)">Blockers</button>
+        <button class="chip warning active" data-f="warning" onclick="toggleFilter(this)">Warnings</button>
+        <button class="chip suggestion active" data-f="suggestion" onclick="toggleFilter(this)">Suggestions</button>
+        <button class="chip clean active" data-f="clean" onclick="toggleFilter(this)">Clean</button>
+        <input class="search-input" id="file-search" placeholder="search filename..." oninput="renderReport()" />
+      </div>
+
+      <div id="report-body"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ─── Constants ───────────────────────────────────────────────────────────────
+
+const SKIP_PATTERNS = [
+  /node_modules/, /\.min\.js$/, /dist\//, /build\//, /\.lock$/,
+  /package-lock/, /yarn\.lock/, /\.map$/, /\.svg$/, /\.png$/, /\.ico$/,
+  /\.json$/, /\.md$/, /\.css$/, /\.html$/, /\.env/, /CHANGELOG/,
+  /vite-env/, /\.d\.ts$/, /\.jpg$/, /\.jpeg$/, /\.gif$/, /\.woff/,
+  /\.ttf$/, /\.eot$/, /public\//, /coverage\//
+];
+const SCAN_EXTS = ['.ts', '.tsx', '.js', '.jsx', '.py', '.java', '.cs', '.go'];
+const STORAGE_KEY = 'clean_vibe_v1';
+
+// ─── State ───────────────────────────────────────────────────────────────────
+
+let S = {
+  repo: '', branch: 'main', token: '', claudeKey: '',
+  dirs: [], selectedDirs: new Set(),
+  results: {}, sonnetResults: {},
+  scannedDirs: new Set(),
+  scanning: false, stopRequested: false
+};
+
+// ─── Persistence ─────────────────────────────────────────────────────────────
+
+function persist() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      repo: S.repo, branch: S.branch,
+      results: S.results,
+      sonnetResults: S.sonnetResults,
+      scannedDirs: [...S.scannedDirs]
+    }));
+  } catch(e) { console.error('persist failed', e); }
+}
+
+function hydrate() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch(e) { return null; }
+}
+
+function clearPrior() {
+  localStorage.removeItem(STORAGE_KEY);
+  S.results = {}; S.sonnetResults = {}; S.scannedDirs = new Set();
+  document.getElementById('prior-card').style.display = 'none';
+  showPhase('connect');
+}
+
+function loadPrior() {
+  const p = hydrate();
+  if (!p) return;
+  S.results = p.results || {};
+  S.sonnetResults = p.sonnetResults || {};
+  S.scannedDirs = new Set(p.scannedDirs || []);
+  S.repo = p.repo || ''; S.branch = p.branch || 'main';
+  renderReportView();
+  showPhase('report');
+}
+
+// ─── Boot ─────────────────────────────────────────────────────────────────────
+
+window.onload = () => {
+  const p = hydrate();
+  if (p && Object.keys(p.results || {}).length > 0) {
+    const counts = countAll(p.results);
+    const nFiles = Object.keys(p.results).length;
+    const nSonnet = Object.keys(p.sonnetResults || {}).length;
+    document.getElementById('prior-card').style.display = 'block';
+    document.getElementById('prior-summary').innerHTML =
+      `<strong style="color:var(--text)">${p.repo}</strong> @ ${p.branch} &mdash; ` +
+      `${nFiles} files &nbsp;·&nbsp; ` +
+      `<span style="color:var(--red)">${counts.blocker} blockers</span> &nbsp;·&nbsp; ` +
+      `<span style="color:var(--amber)">${counts.warning} warnings</span> &nbsp;·&nbsp; ` +
+      `${counts.suggestion} suggestions` +
+      (nSonnet > 0 ? ` &nbsp;·&nbsp; <span style="color:var(--purple)">${nSonnet} Sonnet analyzed</span>` : '');
+    if (p.repo) document.getElementById('inp-repo').value = p.repo;
+    if (p.branch) document.getElementById('inp-branch').value = p.branch;
+  }
+};
+
+// ─── Phase navigation ─────────────────────────────────────────────────────────
+
+function showPhase(name) {
+  document.querySelectorAll('.phase').forEach(p => p.classList.remove('active'));
+  document.getElementById('phase-' + name).classList.add('active');
+}
+
+function goConnect() { showPhase('connect'); }
+
+function goEstimate() {
+  renderDirList();
+  const hasResults = Object.keys(S.results).length > 0;
+  document.getElementById('btn-view-report').style.display = hasResults ? 'inline-flex' : 'none';
+  showPhase('estimate');
+}
+
+function goReport() { renderReportView(); showPhase('report'); }
+
+// ─── GitHub API ───────────────────────────────────────────────────────────────
+
+async function ghGet(path) {
+  const res = await fetch('https://api.github.com' + path, {
+    headers: { Authorization: 'token ' + S.token, Accept: 'application/vnd.github.v3+json' }
+  });
+  if (!res.ok) throw new Error(`GitHub ${res.status}: ${path}`);
+  return res.json();
+}
+
+async function fetchContent(path) {
+  const data = await ghGet(`/repos/${S.repo}/contents/${encodeURIComponent(path)}?ref=${S.branch}`);
+  return atob(data.content.replace(/\n/g, ''));
+}
+
+// ─── Connect + estimate ───────────────────────────────────────────────────────
+
+async function doConnect() {
+  const repo = document.getElementById('inp-repo').value.trim();
+  const branch = document.getElementById('inp-branch').value.trim() || 'main';
+  const token = document.getElementById('inp-token').value.trim();
+  const claude = document.getElementById('inp-claude').value.trim();
+  const errEl = document.getElementById('connect-error');
+  errEl.style.display = 'none';
+
+  if (!repo || !token || !claude) {
+    errEl.textContent = 'Repo, GitHub token, and Anthropic key are required.';
+    errEl.style.display = 'block'; return;
+  }
+
+  S.repo = repo; S.branch = branch; S.token = token; S.claudeKey = claude;
+
+  const dot = document.getElementById('connect-dot');
+  const status = document.getElementById('connect-status');
+  const btn = document.getElementById('btn-connect');
+  dot.className = 'dot running'; status.textContent = 'Fetching file tree...'; btn.disabled = true;
+
+  try {
+    const tree = await ghGet(`/repos/${S.repo}/git/trees/${S.branch}?recursive=1`);
+    const blobs = (tree.tree || []).filter(f => f.type === 'blob');
+
+    const scannable = blobs.filter(f => {
+      const ext = '.' + f.path.split('.').pop();
+      return SCAN_EXTS.includes(ext) && !SKIP_PATTERNS.some(p => p.test(f.path));
+    });
+
+    const dirMap = {};
+    scannable.forEach(f => {
+      const parts = f.path.split('/');
+      const dir = parts.length > 1 ? parts.slice(0, -1).join('/') : '(root)';
+      if (!dirMap[dir]) dirMap[dir] = { files: [], size: 0 };
+      dirMap[dir].files.push(f);
+      dirMap[dir].size += f.size || 0;
+    });
+
+    S.dirs = Object.entries(dirMap)
+      .map(([name, data]) => ({ name, files: data.files, estMins: Math.ceil(data.files.length * 0.4) }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    const prior = hydrate();
+    if (prior && prior.repo === S.repo) {
+      S.results = prior.results || {};
+      S.sonnetResults = prior.sonnetResults || {};
+      S.scannedDirs = new Set(prior.scannedDirs || []);
+    }
+
+    const totalFiles = scannable.length;
+    const totalMins = Math.ceil(totalFiles * 0.4);
+    document.getElementById('est-summary').textContent =
+      `${totalFiles} scannable files across ${S.dirs.length} directories — full scan ~${totalMins} min at ~$${(totalFiles * 0.001).toFixed(2)} (Haiku). Select directories below to run in batches.`;
+    document.getElementById('repo-title').textContent = S.repo + ' @ ' + S.branch;
+
+    dot.className = 'dot done';
+    status.textContent = `${totalFiles} files found`;
+    goEstimate();
+  } catch(e) {
+    dot.className = 'dot error';
+    errEl.textContent = e.message;
+    errEl.style.display = 'block';
+  }
+  btn.disabled = false;
+}
+
+// ─── Directory selection ──────────────────────────────────────────────────────
+
+function renderDirList() {
+  document.getElementById('dir-list').innerHTML = S.dirs.map(d => {
+    const scanned = S.scannedDirs.has(d.name);
+    const selected = S.selectedDirs.has(d.name);
+    const cls = 'dir-row' + (scanned ? ' scanned' : selected ? ' selected' : '');
+    const fileResult = S.results[d.files[0]?.path];
+    return `<div class="${cls}" data-dir="${d.name}" onclick="toggleDir('${d.name.replace(/'/g,"\\'")}')">
+      <span class="dir-name">${d.name}</span>
+      <span class="dir-meta">${d.files.length} files</span>
+      <span class="badge badge-gray">~${d.estMins}m</span>
+      ${scanned ? '<span class="badge badge-green">✓ scanned</span>' : ''}
+    </div>`;
+  }).join('');
+  updateSelCount();
+}
+
+function toggleDir(name) {
+  if (S.scannedDirs.has(name)) return;
+  S.selectedDirs.has(name) ? S.selectedDirs.delete(name) : S.selectedDirs.add(name);
+  renderDirList();
+}
+
+function selectAll() {
+  S.dirs.forEach(d => { if (!S.scannedDirs.has(d.name)) S.selectedDirs.add(d.name); });
+  renderDirList();
+}
+
+function selectNone() { S.selectedDirs.clear(); renderDirList(); }
+
+function updateSelCount() {
+  const n = S.selectedDirs.size;
+  const files = S.dirs.filter(d => S.selectedDirs.has(d.name)).reduce((s, d) => s + d.files.length, 0);
+  const mins = Math.ceil(files * 0.4);
+  document.getElementById('sel-count').textContent = `${n} selected`;
+  document.getElementById('scan-est-label').textContent = n > 0 ? `${files} files · ~${mins} min` : '';
+  document.getElementById('btn-scan').disabled = n === 0;
+}
+
+// ─── Haiku scan ───────────────────────────────────────────────────────────────
+
+const HAIKU_SYSTEM = `You are a strict Clean Code reviewer applying Robert C. Martin's principles from "Clean Code" (the book).
+
+SEVERITY:
+- blocker: dangerous, incorrect, hard project rule violated, will cause real bugs
+- warning: clear Clean Code violation that degrades maintainability  
+- suggestion: naming or structural improvement
+
+PRINCIPLES TO ENFORCE:
+Meaningful names (no abbreviations, intention-revealing, no noise words)
+Functions do one thing, one level of abstraction, max ~20 lines, max 3 args, no flag args, no side effects
+Comments explain WHY not WHAT — code must be self-documenting
+DRY — every piece of knowledge once. SRP — one reason to change. KISS.
+No silent failures — every catch must surface an error visibly
+Exceptions not error codes. Never return null. Never pass null.
+No hardcoded magic values (numbers, strings used as data in conditionals)
+
+Respond ONLY with raw JSON — no markdown, no backticks, no explanation:
+{"violations":[{"severity":"blocker"|"warning"|"suggestion","principle":"short label","section":"","issue":"one sentence","fix":"one sentence"}],"summary":"one sentence"}`;
+
+const SONNET_SYSTEM = `You are a senior software architect performing deep Clean Code analysis on files that already have known blocker-level violations.
+
+For each blocker violation, provide:
+1. Root cause — the deeper architectural or design problem behind the surface violation
+2. Code smell category from Martin's taxonomy (Bloated Code, Object-Orientation Abusers, Change Preventers, Dispensables, Couplers)  
+3. A concrete refactored code example (5–15 lines) showing the correct approach
+4. Any related violations in the same file that compound the problem
+
+Also identify any additional blockers the initial fast pass may have missed.
+
+Respond ONLY with raw JSON — no markdown, no backticks:
+{"violations":[{"severity":"blocker"|"warning","principle":"label","section":"","issue":"sentence","fix":"sentence","rootCause":"sentence","smellCategory":"category","example":"code string or empty string"}],"summary":"one paragraph","additionalBlockers":[]}`;
+
+function addLog(logId, msg, cls = '') {
+  const log = document.getElementById(logId);
+  const line = document.createElement('div');
+  line.className = 'log-line ' + cls;
+  line.textContent = msg;
+  log.appendChild(line);
+  log.scrollTop = log.scrollHeight;
+}
+
+async function callClaude(system, userMsg, model) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': S.claudeKey,
+      'anthropic-version': '2023-06-01'
+    },
+    body: JSON.stringify({
+      model,
+      max_tokens: 1200,
+      system,
+      messages: [{ role: 'user', content: userMsg }]
+    })
+  });
+  if (!res.ok) throw new Error(`Claude API ${res.status}`);
+  const data = await res.json();
+  const text = data.content?.[0]?.text || '{}';
+  return JSON.parse(text.replace(/```json|```/g, '').trim());
+}
+
+async function doScan() {
+  if (S.selectedDirs.size === 0) return;
+  S.scanning = true; S.stopRequested = false;
+  showPhase('scan');
+  document.getElementById('scan-log').innerHTML = '';
+
+  const filesToScan = [];
+  S.dirs.forEach(d => { if (S.selectedDirs.has(d.name)) filesToScan.push(...d.files); });
+
+  const prior = hydrate();
+  if (prior && prior.repo === S.repo) S.results = { ...prior.results };
+
+  let done = 0;
+  const updateLive = () => {
+    const c = countAll(S.results);
+    document.getElementById('live-files').textContent = Object.keys(S.results).length;
+    document.getElementById('live-b').textContent = c.blocker;
+    document.getElementById('live-w').textContent = c.warning;
+    document.getElementById('live-s').textContent = c.suggestion;
+  };
+  updateLive();
+
+  for (const file of filesToScan) {
+    if (S.stopRequested) { addLog('scan-log', 'Stopped.', 'log-err'); break; }
+
+    const pct = Math.round((done / filesToScan.length) * 100);
+    document.getElementById('scan-progress').style.width = pct + '%';
+    document.getElementById('scan-status').textContent = `${file.path} (${done + 1}/${filesToScan.length})`;
+
+    try {
+      addLog('scan-log', `→ ${file.path}`);
+      const content = await fetchContent(file.path);
+      const MAX = 14000;
+      const snippet = content.length > MAX ? content.slice(0, MAX) + '\n// [truncated]' : content;
+      const result = await callClaude(HAIKU_SYSTEM, `File: ${file.path}\n\n${snippet}`, 'claude-haiku-4-5-20251001');
+      S.results[file.path] = result;
+
+      const nb = (result.violations || []).filter(v => v.severity === 'blocker').length;
+      const nw = (result.violations || []).filter(v => v.severity === 'warning').length;
+      const ns = (result.violations || []).filter(v => v.severity === 'suggestion').length;
+      const cls = nb > 0 ? 'log-err' : nw > 0 ? '' : 'log-ok';
+      addLog('scan-log', `   ${nb}B ${nw}W ${ns}S — ${result.summary || ''}`, cls);
+      updateLive();
+    } catch(e) {
+      addLog('scan-log', `   ✗ ${e.message}`, 'log-err');
+      S.results[file.path] = { violations: [], summary: 'Error: ' + e.message };
+    }
+
+    done++;
+    persist();
+    await new Promise(r => setTimeout(r, 180));
+  }
+
+  [...S.selectedDirs].forEach(d => S.scannedDirs.add(d));
+  S.selectedDirs.clear();
+  document.getElementById('scan-progress').style.width = '100%';
+  document.getElementById('scan-status').textContent = 'Complete';
+  S.scanning = false;
+  persist();
+
+  setTimeout(() => { renderReportView(); showPhase('report'); }, 700);
+}
+
+function stopScan() { S.stopRequested = true; }
+
+// ─── Sonnet pass ──────────────────────────────────────────────────────────────
+
+async function doSonnetPass() {
+  const blockerFiles = Object.entries(S.results)
+    .filter(([, r]) => (r.violations || []).some(v => v.severity === 'blocker'))
+    .map(([path]) => path)
+    .filter(path => !S.sonnetResults[path]);
+
+  if (blockerFiles.length === 0) return;
+
+  document.getElementById('sonnet-cta').style.display = 'none';
+  showPhase('sonnet');
+  document.getElementById('sonnet-log').innerHTML = '';
+
+  for (let i = 0; i < blockerFiles.length; i++) {
+    const path = blockerFiles[i];
+    const pct = Math.round((i / blockerFiles.length) * 100);
+    document.getElementById('sonnet-progress').style.width = pct + '%';
+    document.getElementById('sonnet-status').textContent = `${path} (${i + 1}/${blockerFiles.length})`;
+    addLog('sonnet-log', `✦ deep analysis: ${path}`, 'log-sonnet');
+
+    try {
+      const content = await fetchContent(path);
+      const MAX = 14000;
+      const snippet = content.length > MAX ? content.slice(0, MAX) + '\n// [truncated]' : content;
+      const knownBlockers = (S.results[path]?.violations || []).filter(v => v.severity === 'blocker');
+      const prompt = `File: ${path}\n\nKnown blockers from initial scan:\n${JSON.stringify(knownBlockers, null, 2)}\n\nFull file:\n${snippet}`;
+      const result = await callClaude(SONNET_SYSTEM, prompt, 'claude-sonnet-4-20250514');
+      S.sonnetResults[path] = result;
+      addLog('sonnet-log', `   → ${(result.violations || []).length} violations with root cause analysis`, 'log-sonnet');
+    } catch(e) {
+      addLog('sonnet-log', `   ✗ ${e.message}`, 'log-err');
+    }
+
+    persist();
+    await new Promise(r => setTimeout(r, 250));
+  }
+
+  document.getElementById('sonnet-progress').style.width = '100%';
+  document.getElementById('sonnet-status').textContent = 'Sonnet pass complete';
+  persist();
+
+  setTimeout(() => { renderReportView(); showPhase('report'); }, 700);
+}
+
+// ─── Report ───────────────────────────────────────────────────────────────────
+
+function countAll(results) {
+  let blocker = 0, warning = 0, suggestion = 0;
+  Object.values(results).forEach(r => (r.violations || []).forEach(v => {
+    if (v.severity === 'blocker') blocker++;
+    else if (v.severity === 'warning') warning++;
+    else suggestion++;
+  }));
+  return { blocker, warning, suggestion };
+}
+
+function renderReportView() {
+  const c = countAll(S.results);
+  const nFiles = Object.keys(S.results).length;
+  const nClean = Object.values(S.results).filter(r => (r.violations || []).length === 0).length;
+  const nSonnet = Object.keys(S.sonnetResults).length;
+  const nBlockerFiles = Object.entries(S.results).filter(([, r]) => (r.violations || []).some(v => v.severity === 'blocker')).length;
+  const unanalyzedBlockers = nBlockerFiles - nSonnet;
+
+  document.getElementById('r-files').textContent = nFiles;
+  document.getElementById('r-b').textContent = c.blocker;
+  document.getElementById('r-w').textContent = c.warning;
+  document.getElementById('r-s').textContent = c.suggestion;
+  document.getElementById('r-clean').textContent = nClean;
+  document.getElementById('r-sonnet').textContent = nSonnet;
+  document.getElementById('report-title').textContent = S.repo || 'Report';
+
+  const cta = document.getElementById('sonnet-cta');
+  if (unanalyzedBlockers > 0) {
+    cta.style.display = 'block';
+    document.getElementById('sonnet-cta-sub').textContent =
+      `${unanalyzedBlockers} file${unanalyzedBlockers > 1 ? 's' : ''} with blockers haven't been deep-analyzed yet. Sonnet will add root cause, smell category, and refactored examples.`;
+  } else {
+    cta.style.display = 'none';
+  }
+
+  renderReport();
+}
+
+let activeFilters = new Set(['blocker', 'warning', 'suggestion', 'clean']);
+
+function toggleFilter(el) {
+  const f = el.dataset.f;
+  activeFilters.has(f) ? activeFilters.delete(f) : activeFilters.add(f);
+  el.classList.toggle('active');
+  renderReport();
+}
+
+function renderReport() {
+  const search = (document.getElementById('file-search')?.value || '').toLowerCase();
+  const body = document.getElementById('report-body');
+
+  const entries = Object.entries(S.results)
+    .filter(([path]) => !search || path.toLowerCase().includes(search))
+    .sort((a, b) => {
+      const rank = r => (r.violations || []).some(v => v.severity === 'blocker') ? 0
+        : (r.violations || []).some(v => v.severity === 'warning') ? 1 : 2;
+      return rank(a[1]) - rank(b[1]);
+    });
+
+  const html = entries.map(([path, result]) => {
+    const vs = result.violations || [];
+    const nb = vs.filter(v => v.severity === 'blocker').length;
+    const nw = vs.filter(v => v.severity === 'warning').length;
+    const ns = vs.filter(v => v.severity === 'suggestion').length;
+    const isClean = vs.length === 0;
+    const hasSonnet = !!S.sonnetResults[path];
+
+    if (isClean && !activeFilters.has('clean')) return '';
+    if (!isClean) {
+      const vis = (nb > 0 && activeFilters.has('blocker')) ||
+                  (nw > 0 && activeFilters.has('warning')) ||
+                  (ns > 0 && activeFilters.has('suggestion'));
+      if (!vis) return '';
+    }
+
+    const visVs = vs.filter(v =>
+      (v.severity === 'blocker' && activeFilters.has('blocker')) ||
+      (v.severity === 'warning' && activeFilters.has('warning')) ||
+      (v.severity === 'suggestion' && activeFilters.has('suggestion'))
+    );
+
+    const sonnet = S.sonnetResults[path];
+    const sonnetVs = sonnet ? (sonnet.violations || []) : [];
+    const id = 'fg' + path.replace(/[^a-z0-9]/gi, '_');
+
+    return `<div class="file-group">
+      <div class="file-header" onclick="toggleFile('${id}')">
+        <span class="file-path">${path}</span>
+        <div class="file-counts">
+          ${nb > 0 ? `<span class="v-count blocker">${nb}B</span>` : ''}
+          ${nw > 0 ? `<span class="v-count warning">${nw}W</span>` : ''}
+          ${ns > 0 ? `<span class="v-count suggestion">${ns}S</span>` : ''}
+          ${isClean ? '<span class="v-count clean">✓</span>' : ''}
+          ${hasSonnet ? '<span class="v-count sonnet">✦</span>' : ''}
+        </div>
+      </div>
+      <div class="file-body" id="${id}">
+        ${result.summary ? `<div class="file-summary">${result.summary}</div>` : ''}
+        ${visVs.map(v => {
+          const sv = sonnetVs.find(s => s.principle === v.principle || s.issue === v.issue);
+          return `<div class="violation">
+            <span class="v-badge ${v.severity}">${v.severity}</span>
+            <div class="v-body">
+              <div class="v-issue">${v.issue}</div>
+              <div class="v-meta">
+                <span class="v-principle">${v.principle}</span>
+                ${v.section ? `<span class="v-section">${v.section}</span>` : ''}
+                ${sv?.smellCategory ? `<span class="v-section" style="color:var(--purple);background:var(--purple-bg);">${sv.smellCategory}</span>` : ''}
+              </div>
+              <div class="v-fix">Fix: ${v.fix}</div>
+              ${sv?.rootCause ? `<div class="v-root-cause">Root cause: ${sv.rootCause}</div>` : ''}
+              ${sv?.example ? `<div class="v-example">${sv.example.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>` : ''}
+            </div>
+          </div>`;
+        }).join('')}
+        ${hasSonnet && sonnet.summary ? `<div class="sonnet-section"><div class="sonnet-label">✦ Sonnet analysis</div><div style="font-size:12px;color:var(--text2)">${sonnet.summary}</div></div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+  body.innerHTML = html || '<div class="empty">No results match current filters</div>';
+}
+
+function toggleFile(id) {
+  document.getElementById(id)?.classList.toggle('open');
+}
+
+// ─── Download ─────────────────────────────────────────────────────────────────
+
+function downloadReport() {
+  const c = countAll(S.results);
+  const date = new Date().toISOString().split('T')[0];
+  const nSonnet = Object.keys(S.sonnetResults).length;
+  const nClean = Object.values(S.results).filter(r => (r.violations || []).length === 0).length;
+
+  let md = `# Clean Code Report — ${S.repo}\n\n`;
+  md += `Generated: ${date}  |  Branch: ${S.branch}  |  Tool: [clean-vibe](https://github.com/triplemoongoddess/clean-vibe)\n\n`;
+  md += `## Summary\n\n`;
+  md += `| | |\n|---|---|\n`;
+  md += `| Files scanned | ${Object.keys(S.results).length} |\n`;
+  md += `| Blockers | ${c.blocker} |\n`;
+  md += `| Warnings | ${c.warning} |\n`;
+  md += `| Suggestions | ${c.suggestion} |\n`;
+  md += `| Clean files | ${nClean} |\n`;
+  md += `| Sonnet deep-analyzed | ${nSonnet} |\n\n`;
+
+  md += `## Violations by file\n\n`;
+  md += `> Files sorted blocker-first. ✦ = Sonnet deep analysis included.\n\n`;
+
+  Object.entries(S.results)
+    .sort((a, b) => {
+      const rank = r => (r.violations || []).some(v => v.severity === 'blocker') ? 0
+        : (r.violations || []).some(v => v.severity === 'warning') ? 1 : 2;
+      return rank(a[1]) - rank(b[1]);
+    })
+    .forEach(([path, result]) => {
+      const vs = result.violations || [];
+      if (vs.length === 0) return;
+      const hasSonnet = !!S.sonnetResults[path];
+      md += `### \`${path}\`${hasSonnet ? ' ✦' : ''}\n\n`;
+      if (result.summary) md += `> ${result.summary}\n\n`;
+
+      const sonnetVs = S.sonnetResults[path]?.violations || [];
+      vs.forEach(v => {
+        const sv = sonnetVs.find(s => s.principle === v.principle);
+        md += `- **${v.severity.toUpperCase()}** ${v.section ? `[${v.section}]` : ''} *${v.principle}*\n`;
+        md += `  - ${v.issue}\n`;
+        md += `  - Fix: ${v.fix}\n`;
+        if (sv?.rootCause) md += `  - Root cause: ${sv.rootCause}\n`;
+        if (sv?.smellCategory) md += `  - Smell: ${sv.smellCategory}\n`;
+        if (sv?.example) md += `  - Example:\n\`\`\`\n${sv.example}\n\`\`\`\n`;
+      });
+
+      if (hasSonnet && S.sonnetResults[path].summary) {
+        md += `\n**Sonnet analysis:** ${S.sonnetResults[path].summary}\n`;
+      }
+      md += '\n';
+    });
+
+  md += `---\n*Generated by [clean-vibe](https://github.com/triplemoongoddess/clean-vibe) — AI Clean Code scanner*\n`;
+  md += `*Free for non-commercial use · [Commercial license](https://triplemoongoddess.com/clean-vibe/license)*\n`;
+
+  const blob = new Blob([md], { type: 'text/markdown' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `clean-vibe-${S.repo.replace('/', '-')}-${date}.md`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>
