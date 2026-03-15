@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Introducing clean-vibe — AI Clean Code Scanner</title>
+<meta name="description" content="clean-vibe scans your entire GitHub repository for Clean Code violations using a two-pass AI analysis. Free for non-commercial use." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #0e0e0e;
+    --ink2: #3a3a3a;
+    --ink3: #7a7a7a;
+    --paper: #f5f2eb;
+    --paper2: #ede9e0;
+    --paper3: #e4dfd3;
+    --accent: #c8401a;
+    --accent2: #e8955a;
+    --mono: 'DM Mono', monospace;
+    --serif: 'DM Serif Display', Georgia, serif;
+    --sans: 'DM Sans', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 17px;
+    line-height: 1.75;
+    overflow-x: hidden;
+  }
+
+  /* ── Header ── */
+  .site-header {
+    padding: 1.5rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--paper3);
+    position: sticky;
+    top: 0;
+    background: var(--paper);
+    z-index: 100;
+  }
+
+  .site-logo {
+    font-family: var(--mono);
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--ink);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .site-logo span { color: var(--accent); }
+
+  .header-nav { display: flex; gap: 24px; align-items: center; }
+  .header-nav a { font-size: 13px; color: var(--ink3); text-decoration: none; transition: color 0.15s; }
+  .header-nav a:hover { color: var(--ink); }
+  .header-nav .cta {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 7px 16px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .header-nav .cta:hover { background: var(--accent); color: var(--paper); }
+
+  /* ── Hero ── */
+  .hero {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 5rem 2rem 3rem;
+    position: relative;
+  }
+
+  .hero-eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .hero-eyebrow::after {
+    content: '';
+    display: block;
+    height: 1px;
+    width: 40px;
+    background: var(--accent);
+  }
+
+  .hero h1 {
+    font-family: var(--serif);
+    font-size: clamp(2.4rem, 6vw, 3.8rem);
+    line-height: 1.1;
+    color: var(--ink);
+    margin-bottom: 1.5rem;
+    letter-spacing: -0.01em;
+  }
+
+  .hero h1 em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  .hero-meta {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 13px;
+    color: var(--ink3);
+    margin-bottom: 2.5rem;
+    padding-bottom: 2.5rem;
+    border-bottom: 1px solid var(--paper3);
+  }
+
+  .hero-meta .dot { width: 3px; height: 3px; border-radius: 50%; background: var(--ink3); }
+
+  .hero-lede {
+    font-size: 1.15rem;
+    color: var(--ink2);
+    line-height: 1.7;
+    font-weight: 300;
+    max-width: 640px;
+  }
+
+  /* ── Article body ── */
+  .article {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 0 2rem 5rem;
+  }
+
+  .article p {
+    color: var(--ink2);
+    margin-bottom: 1.5rem;
+    font-weight: 300;
+  }
+
+  .article h2 {
+    font-family: var(--serif);
+    font-size: 1.9rem;
+    color: var(--ink);
+    margin: 3rem 0 1rem;
+    line-height: 1.2;
+  }
+
+  .article h3 {
+    font-family: var(--sans);
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--ink);
+    margin: 2rem 0 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 12px;
+  }
+
+  .article strong { font-weight: 500; color: var(--ink); }
+
+  .article a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+
+  /* ── Pull quote ── */
+  .pullquote {
+    margin: 2.5rem 0;
+    padding: 1.5rem 2rem;
+    border-left: 3px solid var(--accent);
+    background: var(--paper2);
+  }
+
+  .pullquote p {
+    font-family: var(--serif);
+    font-size: 1.35rem;
+    font-style: italic;
+    color: var(--ink);
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  /* ── Code block ── */
+  .code-block {
+    background: var(--ink);
+    border-radius: 6px;
+    padding: 1.25rem 1.5rem;
+    margin: 1.5rem 0;
+    overflow-x: auto;
+  }
+
+  .code-block pre {
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.7;
+    color: #e8e4d9;
+  }
+
+  .code-block .comment { color: #7a8a7a; }
+  .code-block .keyword { color: var(--accent2); }
+  .code-block .string { color: #a8c49a; }
+  .code-block .fn { color: #8ab4d8; }
+
+  /* ── Violation example ── */
+  .violation-pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 1.5rem 0;
+  }
+
+  @media (max-width: 600px) {
+    .violation-pair { grid-template-columns: 1fr; }
+  }
+
+  .violation-bad, .violation-good {
+    border-radius: 6px;
+    padding: 1rem 1.25rem;
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.7;
+  }
+
+  .violation-bad {
+    background: #2a1010;
+    color: #e8c4c4;
+    border-top: 2px solid #c84040;
+  }
+
+  .violation-good {
+    background: #0d1f12;
+    color: #c4e8c4;
+    border-top: 2px solid #3ecf8e;
+  }
+
+  .violation-label {
+    font-family: var(--sans);
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 8px;
+    opacity: 0.7;
+  }
+
+  /* ── Feature grid ── */
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1px;
+    background: var(--paper3);
+    margin: 2rem 0;
+    border: 1px solid var(--paper3);
+  }
+
+  .feature-cell {
+    background: var(--paper);
+    padding: 1.5rem;
+  }
+
+  .feature-icon {
+    font-family: var(--mono);
+    font-size: 20px;
+    color: var(--accent);
+    margin-bottom: 10px;
+  }
+
+  .feature-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+
+  .feature-desc {
+    font-size: 13px;
+    color: var(--ink3);
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  /* ── Severity badges ── */
+  .severity-row {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 1.5rem 0;
+  }
+
+  .severity-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--paper2);
+    border-radius: 4px;
+  }
+
+  .sev-badge {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 8px;
+    border-radius: 3px;
+    white-space: nowrap;
+    min-width: 80px;
+    text-align: center;
+  }
+
+  .sev-badge.blocker { background: #2a1010; color: #e05c5c; }
+  .sev-badge.warning { background: #2a1e08; color: #f5a623; }
+  .sev-badge.suggestion { background: var(--paper3); color: var(--ink3); }
+
+  .sev-text { font-size: 13px; color: var(--ink2); line-height: 1.5; }
+  .sev-text strong { color: var(--ink); }
+
+  /* ── CTA ── */
+  .cta-block {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 3rem 2.5rem;
+    margin: 3rem 0;
+    border-radius: 6px;
+    text-align: center;
+  }
+
+  .cta-block h2 {
+    font-family: var(--serif);
+    font-size: 2rem;
+    color: var(--paper);
+    margin-bottom: 0.75rem;
+  }
+
+  .cta-block p {
+    color: rgba(245,242,235,0.65);
+    font-size: 15px;
+    margin-bottom: 1.5rem;
+  }
+
+  .cta-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+  .btn-light {
+    background: var(--paper);
+    color: var(--ink);
+    padding: 10px 24px;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: opacity 0.15s;
+  }
+
+  .btn-light:hover { opacity: 0.85; }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--paper);
+    padding: 10px 24px;
+    border-radius: 4px;
+    font-size: 14px;
+    border: 1px solid rgba(245,242,235,0.3);
+    text-decoration: none;
+    transition: border-color 0.15s;
+  }
+
+  .btn-ghost:hover { border-color: rgba(245,242,235,0.7); }
+
+  /* ── Footer ── */
+  .site-footer {
+    border-top: 1px solid var(--paper3);
+    padding: 2rem;
+    text-align: center;
+    font-size: 13px;
+    color: var(--ink3);
+  }
+
+  .site-footer a { color: var(--ink3); text-decoration: none; }
+  .site-footer a:hover { color: var(--ink); }
+
+  /* ── Animations ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .hero-eyebrow { animation: fadeUp 0.5s ease both; }
+  .hero h1 { animation: fadeUp 0.5s 0.1s ease both; }
+  .hero-meta { animation: fadeUp 0.5s 0.2s ease both; }
+  .hero-lede { animation: fadeUp 0.5s 0.3s ease both; }
+
+  /* ── Rule ── */
+  .rule {
+    border: none;
+    border-top: 1px solid var(--paper3);
+    margin: 2.5rem 0;
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <a class="site-logo" href="https://triple-moon-goddess.github.io/clean-vibe/">
+    ✦ clean<span>-vibe</span>
+  </a>
+  <nav class="header-nav">
+    <a href="https://github.com/Triple-Moon-Goddess/clean-vibe">GitHub</a>
+    <a href="https://triple-moon-goddess.github.io/clean-vibe/license.html" class="cta">Get a license</a>
+  </nav>
+</header>
+
+<article>
+
+  <div class="hero">
+    <div class="hero-eyebrow">Introducing clean-vibe</div>
+    <h1>Your codebase has more <em>violations</em> than you think.</h1>
+    <div class="hero-meta">
+      <span>Triple Moon Goddess</span>
+      <span class="dot"></span>
+      <span>March 2026</span>
+      <span class="dot"></span>
+      <span>5 min read</span>
+    </div>
+    <p class="hero-lede">
+      clean-vibe is an AI-powered tool that traverses your entire GitHub repository, analyzes every source file against Robert C. Martin's Clean Code principles, and produces a detailed violation report — sorted by severity, filterable by file, downloadable as markdown.
+    </p>
+  </div>
+
+  <div class="article">
+
+    <p>
+      Every codebase accumulates debt. Not the big architectural decisions — those get debated in PRs. The quiet stuff. The function that does three things. The variable named <code style="font-family:var(--mono);font-size:14px;background:var(--paper2);padding:1px 5px;border-radius:3px">d</code>. The catch block that swallows errors silently. The magic number buried in a conditional.
+    </p>
+
+    <p>
+      Martin's <em>Clean Code</em> has been the standard reference for over fifteen years. Most developers have read it — or at least know they should have. But reading the book and consistently applying its principles across a 50,000-line codebase are very different things.
+    </p>
+
+    <p>
+      clean-vibe closes that gap.
+    </p>
+
+    <div class="pullquote">
+      <p>"Leave the code cleaner than you found it." — Robert C. Martin, Clean Code</p>
+    </div>
+
+    <h2>How it works</h2>
+
+    <p>
+      Connect any GitHub repository — public or private — paste in your GitHub token and Anthropic API key, and clean-vibe fetches the full file tree. It estimates scan time per directory so you can run in batches rather than waiting for a monorepo to finish overnight.
+    </p>
+
+    <div class="feature-grid">
+      <div class="feature-cell">
+        <div class="feature-icon">→</div>
+        <div class="feature-title">Full repo traversal</div>
+        <p class="feature-desc">Fetches every scannable file via GitHub API. Skips lockfiles, dist, maps, and generated code automatically.</p>
+      </div>
+      <div class="feature-cell">
+        <div class="feature-icon">✦</div>
+        <div class="feature-title">Two-pass AI analysis</div>
+        <p class="feature-desc">Haiku for fast full-coverage scanning. Sonnet for deep blocker analysis with root cause and refactored examples.</p>
+      </div>
+      <div class="feature-cell">
+        <div class="feature-icon">⊞</div>
+        <div class="feature-title">Session persistence</div>
+        <p class="feature-desc">Results saved to localStorage after every file. Scan a directory today, another tomorrow, merge into one report.</p>
+      </div>
+      <div class="feature-cell">
+        <div class="feature-icon">↓</div>
+        <div class="feature-title">Markdown export</div>
+        <p class="feature-desc">Download the full report as a .md file at any point. Paste it into a PR, a ticket, or a team retrospective.</p>
+      </div>
+    </div>
+
+    <h2>Three levels of severity</h2>
+
+    <p>
+      Not all violations are equal. A magic number in a config file is not the same as a catch block that silently swallows errors in a health data platform. clean-vibe sorts accordingly.
+    </p>
+
+    <div class="severity-row">
+      <div class="severity-item">
+        <span class="sev-badge blocker">blocker</span>
+        <div class="sev-text"><strong>Must fix before merge.</strong> Dangerous, incorrect, or violates a hard rule. Will cause real bugs or silent failures in production.</div>
+      </div>
+      <div class="severity-item">
+        <span class="sev-badge warning">warning</span>
+        <div class="sev-text"><strong>Should fix soon.</strong> Clear Clean Code violation that degrades maintainability, obscures intent, or makes the next developer's job harder.</div>
+      </div>
+      <div class="severity-item">
+        <span class="sev-badge suggestion">suggestion</span>
+        <div class="sev-text"><strong>Worth considering.</strong> Naming or structural improvement. Small changes that compound over time into a significantly cleaner codebase.</div>
+      </div>
+    </div>
+
+    <h2>What it actually finds</h2>
+
+    <p>
+      Here's a real example of what the tool surfaces. A function that looks fine at a glance:
+    </p>
+
+    <div class="violation-pair">
+      <div class="violation-bad">
+        <div class="violation-label">✗ before</div>
+        <pre>async function proc(d, t) {
+  // process the data
+  if (d && t === true) {
+    try {
+      await save(d);
+    } catch(e) {
+      console.error(e);
+    }
+  } else {
+    return -1;
+  }
+}</pre>
+      </div>
+      <div class="violation-good">
+        <div class="violation-label">✓ after</div>
+        <pre>async function saveIfActive(
+  record: Record,
+  isActive: boolean
+): Promise&lt;void&gt; {
+  if (!isActive) return;
+  try {
+    await saveRecord(record);
+  } catch (error) {
+    showError('Could not save record.');
+    throw error;
+  }
+}</pre>
+      </div>
+    </div>
+
+    <p>
+      The violations: cryptic parameter names (<code style="font-family:var(--mono);font-size:14px;background:var(--paper2);padding:1px 5px;border-radius:3px">d</code>, <code style="font-family:var(--mono);font-size:14px;background:var(--paper2);padding:1px 5px;border-radius:3px">t</code>), a flag argument, a silent catch, an error code return, and a comment describing what the code already says. Five violations in eight lines — none of them obvious without a systematic review.
+    </p>
+
+    <h2>The two-pass model</h2>
+
+    <p>
+      Speed matters when you're scanning hundreds of files. clean-vibe uses Claude Haiku for the first pass — fast, cheap, covering every file. The cost for a 200-file repo is roughly $0.15.
+    </p>
+
+    <p>
+      After the Haiku pass, any file with blocker-level violations gets a second pass with Claude Sonnet. Sonnet does what Haiku can't: root cause analysis, code smell categorization from Martin's taxonomy, and a concrete refactored example showing the correct approach. This is where the report goes from a list of complaints to an actionable improvement plan.
+    </p>
+
+    <h2>Zero dependencies. Zero build step.</h2>
+
+    <p>
+      clean-vibe is a single <code style="font-family:var(--mono);font-size:14px;background:var(--paper2);padding:1px 5px;border-radius:3px">index.html</code> file. No npm install, no webpack, no server. Open it locally or serve it from any static host. Your API keys stay in your browser — they never pass through any server except Anthropic's and GitHub's directly.
+    </p>
+
+    <div class="code-block">
+      <pre><span class="comment"># Clone and open — that's it</span>
+git clone https://github.com/Triple-Moon-Goddess/clean-vibe.git
+open clean-vibe/index.html</pre>
+    </div>
+
+    <h2>Free for non-commercial use</h2>
+
+    <p>
+      If you're using clean-vibe for personal projects, learning, or open source work — it's free, forever, no account required. Bring your own Anthropic API key and GitHub token.
+    </p>
+
+    <p>
+      Commercial use — at a company, in client work, or as part of a product — requires a license. Three tiers: Individual ($100/year), Team up to 10 developers ($500/year), and Organization unlimited seats ($1,500/year).
+    </p>
+
+    <hr class="rule" />
+
+    <div class="cta-block">
+      <h2>Try it on your codebase.</h2>
+      <p>Free for non-commercial use. Your API keys never leave your browser.</p>
+      <div class="cta-buttons">
+        <a href="https://triple-moon-goddess.github.io/clean-vibe/" class="btn-light">Open clean-vibe →</a>
+        <a href="https://github.com/Triple-Moon-Goddess/clean-vibe" class="btn-ghost">View on GitHub</a>
+      </div>
+    </div>
+
+  </div>
+
+</article>
+
+<footer class="site-footer">
+  <p>
+    <a href="https://triple-moon-goddess.github.io/clean-vibe/">clean-vibe</a> ·
+    <a href="https://github.com/Triple-Moon-Goddess/clean-vibe">GitHub</a> ·
+    <a href="https://triple-moon-goddess.github.io/clean-vibe/license.html">Commercial license</a> ·
+    © 2026 Triple Moon Goddess
+  </p>
+</footer>
+
+</body>
+</html>
