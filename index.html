@@ -372,7 +372,7 @@ const STORAGE_KEY = 'clean_vibe_v1';
 let S = {
   repo: '', branch: 'main', token: '', claudeKey: '',
   dirs: [], selectedDirs: new Set(),
-  results: {}, sonnetResults: {},
+  results: {}, sonnetResults: {}, contentCache: {},
   scannedDirs: new Set(),
   scanning: false, stopRequested: false
 };
@@ -674,6 +674,7 @@ async function doScan() {
     try {
       addLog('scan-log', `→ ${file.path}`);
       const content = await fetchContent(file.path);
+      S.contentCache[file.path] = content;
       const MAX = 14000;
       const snippet = content.length > MAX ? content.slice(0, MAX) + '\n// [truncated]' : content;
       const result = await callClaude(HAIKU_SYSTEM, `File: ${file.path}\n\n${snippet}`, 'claude-haiku-4-5-20251001');
@@ -729,7 +730,7 @@ async function doSonnetPass() {
     addLog('sonnet-log', `✦ deep analysis: ${path}`, 'log-sonnet');
 
     try {
-      const content = await fetchContent(path);
+      const content = S.contentCache[path] || await fetchContent(path);
       const MAX = 14000;
       const snippet = content.length > MAX ? content.slice(0, MAX) + '\n// [truncated]' : content;
       const knownBlockers = (S.results[path]?.violations || []).filter(v => v.severity === 'blocker');
