@@ -171,6 +171,15 @@
   .v-principle { font-size: 11px; color: var(--text2); }
   .v-section { font-size: 11px; color: var(--blue); background: var(--blue-bg); padding: 1px 6px; border-radius: var(--radius); }
   .v-fix { font-size: 12px; color: var(--text2); margin-top: 4px; line-height: 1.5; }
+  .violation.dismissed { opacity: 0.45; }
+  .violation.dismissed .v-issue { text-decoration: line-through; color: var(--text3); }
+  .fp-btn { font-size: 11px; padding: 2px 7px; background: transparent; border: 1px solid var(--border); border-radius: var(--radius); color: var(--text3); cursor: pointer; white-space: nowrap; font-family: inherit; margin-left: auto; flex-shrink: 0; }
+  .fp-btn:hover { border-color: var(--border2); color: var(--text2); }
+  .fp-btn.active { background: var(--amber-bg); color: var(--amber); border-color: rgba(245,166,35,0.3); }
+  .ignore-file-btn { font-size: 11px; padding: 3px 8px; background: transparent; border: 1px solid var(--border); border-radius: var(--radius); color: var(--text3); cursor: pointer; font-family: inherit; }
+  .ignore-file-btn:hover { color: var(--red); border-color: rgba(224,92,92,0.3); }
+  .ignore-file-btn.active { background: var(--red-bg); color: var(--red); border-color: rgba(224,92,92,0.3); }
+  .ignored-banner { font-size: 12px; color: var(--text3); padding: 6px 12px; font-style: italic; }
   .v-example { font-family: var(--mono); font-size: 11px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 10px; margin-top: 6px; color: var(--text2); white-space: pre-wrap; word-break: break-all; }
   .v-root-cause { font-size: 12px; color: var(--purple); margin-top: 4px; font-style: italic; }
 
@@ -373,6 +382,7 @@ let S = {
   repo: '', branch: 'main', token: '', claudeKey: '',
   dirs: [], selectedDirs: new Set(),
   results: {}, sonnetResults: {}, contentCache: {},
+  dismissed: {}, ignoredFiles: new Set(),
   scannedDirs: new Set(),
   scanning: false, stopRequested: false
 };
@@ -385,7 +395,9 @@ function persist() {
       repo: S.repo, branch: S.branch,
       results: S.results,
       sonnetResults: S.sonnetResults,
-      scannedDirs: [...S.scannedDirs]
+      scannedDirs: [...S.scannedDirs],
+      dismissed: S.dismissed,
+      ignoredFiles: [...S.ignoredFiles]
     }));
   } catch(e) { console.error('persist failed', e); }
 }
@@ -399,7 +411,7 @@ function hydrate() {
 
 function clearPrior() {
   localStorage.removeItem(STORAGE_KEY);
-  S.results = {}; S.sonnetResults = {}; S.scannedDirs = new Set();
+  S.results = {}; S.sonnetResults = {}; S.scannedDirs = new Set(); S.dismissed = {}; S.ignoredFiles = new Set();
   document.getElementById('prior-card').style.display = 'none';
   showPhase('connect');
 }
@@ -410,6 +422,8 @@ function loadPrior() {
   S.results = p.results || {};
   S.sonnetResults = p.sonnetResults || {};
   S.scannedDirs = new Set(p.scannedDirs || []);
+  S.dismissed = p.dismissed || {};
+  S.ignoredFiles = new Set(p.ignoredFiles || []);
   S.repo = p.repo || ''; S.branch = p.branch || 'main';
   renderReportView();
   showPhase('report');
@@ -767,11 +781,16 @@ async function doSonnetPass() {
 
 function countAll(results) {
   let blocker = 0, warning = 0, suggestion = 0;
-  Object.values(results).forEach(r => (r.violations || []).forEach(v => {
-    if (v.severity === 'blocker') blocker++;
-    else if (v.severity === 'warning') warning++;
-    else suggestion++;
-  }));
+  Object.entries(results).forEach(([path, r]) => {
+    if (S.ignoredFiles && S.ignoredFiles.has(path)) return;
+    (r.violations || []).forEach((v, vi) => {
+      const fpKey = path + '::' + vi;
+      if (S.dismissed && S.dismissed[fpKey]) return;
+      if (v.severity === 'blocker') blocker++;
+      else if (v.severity === 'warning') warning++;
+      else suggestion++;
+    });
+  });
   return { blocker, warning, suggestion };
 }
 
@@ -831,6 +850,7 @@ function renderReport() {
     const ns = vs.filter(v => v.severity === 'suggestion').length;
     const isClean = vs.length === 0;
     const hasSonnet = !!S.sonnetResults[path];
+    const isIgnored = S.ignoredFiles.has(path);
 
     if (isClean && !activeFilters.has('clean')) return '';
     if (!isClean) {
@@ -849,40 +869,53 @@ function renderReport() {
     const sonnet = S.sonnetResults[path];
     const sonnetVs = sonnet ? (sonnet.violations || []) : [];
     const id = 'fg' + path.replace(/[^a-z0-9]/gi, '_');
+    const safePath = path.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
 
-    return `<div class="file-group">
-      <div class="file-header" onclick="toggleFile('${id}')">
-        <span class="file-path">${path}</span>
-        <div class="file-counts">
-          ${nb > 0 ? `<span class="v-count blocker">${nb}B</span>` : ''}
-          ${nw > 0 ? `<span class="v-count warning">${nw}W</span>` : ''}
-          ${ns > 0 ? `<span class="v-count suggestion">${ns}S</span>` : ''}
-          ${isClean ? '<span class="v-count clean">✓</span>' : ''}
-          ${hasSonnet ? '<span class="v-count sonnet">✦</span>' : ''}
-        </div>
-      </div>
-      <div class="file-body" id="${id}">
-        ${result.summary ? `<div class="file-summary">${result.summary}</div>` : ''}
-        ${visVs.map(v => {
+    return '<div class="file-group">' +
+      '<div class="file-header" onclick="toggleFile(\'' + id + '\')">' +
+        '<span class="file-path">' + path + '</span>' +
+        '<div class="file-counts">' +
+          (nb > 0 ? '<span class="v-count blocker">' + nb + 'B</span>' : '') +
+          (nw > 0 ? '<span class="v-count warning">' + nw + 'W</span>' : '') +
+          (ns > 0 ? '<span class="v-count suggestion">' + ns + 'S</span>' : '') +
+          (isClean ? '<span class="v-count clean">&#10003;</span>' : '') +
+          (hasSonnet ? '<span class="v-count sonnet">&#10022;</span>' : '') +
+          (isIgnored ? '<span class="v-count" style="color:var(--red);background:var(--red-bg);">ignored</span>' : '') +
+        '</div>' +
+      '</div>' +
+      '<div class="file-body" id="' + id + '">' +
+        '<div style="display:flex;justify-content:flex-end;padding:6px 0 4px;border-bottom:1px solid var(--border);margin-bottom:6px;">' +
+          '<button class="ignore-file-btn ' + (isIgnored ? 'active' : '') + '" onclick="toggleIgnoreFile(\'' + safePath + '\', event)">' +
+            (isIgnored ? '&#10003; file ignored' : 'ignore this file') +
+          '</button>' +
+        '</div>' +
+        (isIgnored ? '<div class="ignored-banner">This file is marked as ignored — violations tracked but excluded from summary counts.</div>' : '') +
+        (result.summary ? '<div class="file-summary">' + result.summary + '</div>' : '') +
+        visVs.map(function(v, vi) {
           const sv = sonnetVs.find(s => s.principle === v.principle || s.issue === v.issue);
-          return `<div class="violation">
-            <span class="v-badge ${v.severity}">${v.severity}</span>
-            <div class="v-body">
-              <div class="v-issue">${v.issue}</div>
-              <div class="v-meta">
-                <span class="v-principle">${v.principle}</span>
-                ${v.section ? `<span class="v-section">${v.section}</span>` : ''}
-                ${sv?.smellCategory ? `<span class="v-section" style="color:var(--purple);background:var(--purple-bg);">${sv.smellCategory}</span>` : ''}
-              </div>
-              <div class="v-fix">Fix: ${v.fix}</div>
-              ${sv?.rootCause ? `<div class="v-root-cause">Root cause: ${sv.rootCause}</div>` : ''}
-              ${sv?.example ? `<div class="v-example">${sv.example.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>` : ''}
-            </div>
-          </div>`;
-        }).join('')}
-        ${hasSonnet && sonnet.summary ? `<div class="sonnet-section"><div class="sonnet-label">✦ Sonnet analysis</div><div style="font-size:12px;color:var(--text2)">${sonnet.summary}</div></div>` : ''}
-      </div>
-    </div>`;
+          const fpKey = (path + '::' + vi).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+          const isDismissed = !!S.dismissed[path + '::' + vi];
+          return '<div class="violation' + (isDismissed ? ' dismissed' : '') + '">' +
+            '<span class="v-badge ' + v.severity + '">' + v.severity + '</span>' +
+            '<div class="v-body">' +
+              '<div class="v-issue">' + v.issue + '</div>' +
+              '<div class="v-meta">' +
+                '<span class="v-principle">' + v.principle + '</span>' +
+                (v.section ? '<span class="v-section">' + v.section + '</span>' : '') +
+                (sv && sv.smellCategory ? '<span class="v-section" style="color:var(--purple);background:var(--purple-bg);">' + sv.smellCategory + '</span>' : '') +
+              '</div>' +
+              '<div class="v-fix">Fix: ' + v.fix + '</div>' +
+              (sv && sv.rootCause ? '<div class="v-root-cause">Root cause: ' + sv.rootCause + '</div>' : '') +
+              (sv && sv.example ? '<div class="v-example">' + sv.example.replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</div>' : '') +
+            '</div>' +
+            '<button class="fp-btn ' + (isDismissed ? 'active' : '') + '" onclick="toggleDismiss(\'' + fpKey + '\', event)">' +
+              (isDismissed ? 'false positive &#10003;' : 'false positive?') +
+            '</button>' +
+          '</div>';
+        }).join('') +
+        (hasSonnet && sonnet.summary ? '<div class="sonnet-section"><div class="sonnet-label">&#10022; Sonnet analysis</div><div style="font-size:12px;color:var(--text2)">' + sonnet.summary + '</div></div>' : '') +
+      '</div>' +
+    '</div>';
   }).join('');
 
   body.innerHTML = html || '<div class="empty">No results match current filters</div>';
@@ -890,6 +923,28 @@ function renderReport() {
 
 function toggleFile(id) {
   document.getElementById(id)?.classList.toggle('open');
+}
+
+function toggleDismiss(fpKey, event) {
+  event.stopPropagation();
+  if (S.dismissed[fpKey]) {
+    delete S.dismissed[fpKey];
+  } else {
+    S.dismissed[fpKey] = true;
+  }
+  persist();
+  renderReport();
+}
+
+function toggleIgnoreFile(path, event) {
+  event.stopPropagation();
+  if (S.ignoredFiles.has(path)) {
+    S.ignoredFiles.delete(path);
+  } else {
+    S.ignoredFiles.add(path);
+  }
+  persist();
+  renderReport();
 }
 
 // ─── Download ─────────────────────────────────────────────────────────────────
