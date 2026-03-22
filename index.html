@@ -619,19 +619,26 @@ async function doConnect() {
 // ─── Directory selection ──────────────────────────────────────────────────────
 
 function renderDirList() {
-  document.getElementById('dir-list').innerHTML = S.dirs.map(d => {
+  document.getElementById('dir-list').innerHTML = S.dirs.map((d, i) => {
     const scanned = S.scannedDirs.has(d.name);
     const selected = S.selectedDirs.has(d.name);
     const cls = 'dir-row' + (scanned ? ' scanned' : selected ? ' selected' : '');
-    const fileResult = S.results[d.files[0]?.path];
-    return `<div class="${cls}" data-dir="${d.name}" onclick="toggleDir('${d.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">
-      <span class="dir-name">${d.name}</span>
-      <span class="dir-meta">${d.files.length} files</span>
-      <span class="badge badge-gray">~${d.estMins}m</span>
-      ${scanned ? '<span class="badge badge-green">✓ scanned</span>' : ''}
-    </div>`;
+    const safeName = d.name.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    return '<div class="' + cls + '" data-idx="' + i + '" onclick="toggleDirByIdx(' + i + ')">' +
+      '<span class="dir-name">' + safeName + '</span>' +
+      '<span class="dir-meta">' + d.files.length + ' files</span>' +
+      '<span class="badge badge-gray">~' + d.estMins + 'm</span>' +
+      (scanned ? '<span class="badge badge-green">&#10003; scanned</span>' : '') +
+    '</div>';
   }).join('');
   updateSelCount();
+}
+
+function toggleDirByIdx(idx) {
+  const d = S.dirs[idx];
+  if (!d || S.scannedDirs.has(d.name)) return;
+  S.selectedDirs.has(d.name) ? S.selectedDirs.delete(d.name) : S.selectedDirs.add(d.name);
+  renderDirList();
 }
 
 function toggleDir(name) {
