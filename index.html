@@ -624,7 +624,7 @@ function renderDirList() {
     const selected = S.selectedDirs.has(d.name);
     const cls = 'dir-row' + (scanned ? ' scanned' : selected ? ' selected' : '');
     const fileResult = S.results[d.files[0]?.path];
-    return `<div class="${cls}" data-dir="${d.name}" onclick="toggleDir('${d.name.replace(/'/g,"\\'")}')">
+    return `<div class="${cls}" data-dir="${d.name}" onclick="toggleDir('${d.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">
       <span class="dir-name">${d.name}</span>
       <span class="dir-meta">${d.files.length} files</span>
       <span class="badge badge-gray">~${d.estMins}m</span>
