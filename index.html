@@ -366,7 +366,7 @@
 <script>
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-const VERSION = '1.1.0';
+const VERSION = '1.2.0';
 
 const SKIP_PATTERNS = [
   /node_modules/, /\.min\.js$/, /dist\//, /build\//, /\.lock$/,
@@ -384,7 +384,7 @@ let S = {
   repo: '', branch: 'main', token: '', claudeKey: '',
   dirs: [], selectedDirs: new Set(),
   results: {}, sonnetResults: {}, contentCache: {},
-  dismissed: {}, ignoredFiles: new Set(),
+  dismissed: {}, ignoredFiles: new Set(), ignoreFileDirty: false,
   scannedDirs: new Set(),
   scanning: false, stopRequested: false
 };
@@ -398,8 +398,7 @@ function persist() {
       results: S.results,
       sonnetResults: S.sonnetResults,
       scannedDirs: [...S.scannedDirs],
-      dismissed: S.dismissed,
-      ignoredFiles: [...S.ignoredFiles]
+
     }));
   } catch(e) { console.error('persist failed', e); }
 }
@@ -413,7 +412,7 @@ function hydrate() {
 
 function clearPrior() {
   localStorage.removeItem(STORAGE_KEY);
-  S.results = {}; S.sonnetResults = {}; S.scannedDirs = new Set(); S.dismissed = {}; S.ignoredFiles = new Set();
+  S.results = {}; S.sonnetResults = {}; S.scannedDirs = new Set(); S.dismissed = {}; S.ignoredFiles = new Set(); S.ignoreFileDirty = false;
   document.getElementById('prior-card').style.display = 'none';
   showPhase('connect');
 }
@@ -478,6 +477,58 @@ async function ghGet(path) {
   });
   if (!res.ok) throw new Error(`GitHub ${res.status}: ${path}`);
   return res.json();
+}
+
+// ─── .clean-vibe-ignore ──────────────────────────────────────────────────────
+
+async function loadIgnoreFile() {
+  S.dismissed = {};
+  S.ignoredFiles = new Set();
+  try {
+    const data = await ghGet(`/repos/${S.repo}/contents/.clean-vibe-ignore?ref=${S.branch}`);
+    const text = atob(data.content.replace(/\n/g, ''));
+    text.split('\n').forEach(line => {
+      const entry = line.trim();
+      if (!entry || entry.startsWith('#')) return;
+      if (entry.includes('::')) {
+        S.dismissed[entry] = true;
+      } else {
+        S.ignoredFiles.add(entry);
+      }
+    });
+    console.log(`[clean-vibe] loaded .clean-vibe-ignore: ${Object.keys(S.dismissed).length} dismissed, ${S.ignoredFiles.size} ignored files`);
+  } catch(e) {
+    // File doesn't exist yet — that's fine
+  }
+}
+
+async function saveIgnoreFile() {
+  const lines = ['# clean-vibe ignore file', '# Lines without :: ignore the whole file', '# Lines with :: ignore a specific violation (path::index)', ''];
+  S.ignoredFiles.forEach(f => lines.push(f));
+  Object.keys(S.dismissed).forEach(k => lines.push(k));
+  const text = lines.join('\n') + '\n';
+  const encoded = btoa(unescape(encodeURIComponent(text)));
+
+  let sha = '';
+  try {
+    const existing = await ghGet(`/repos/${S.repo}/contents/.clean-vibe-ignore?ref=${S.branch}`);
+    sha = existing.sha;
+  } catch(e) {}
+
+  const payload = {
+    message: 'chore: update .clean-vibe-ignore',
+    content: encoded,
+    branch: S.branch
+  };
+  if (sha) payload.sha = sha;
+
+  const res = await fetch(`https://api.github.com/repos/${S.repo}/contents/.clean-vibe-ignore`, {
+    method: 'PUT',
+    headers: { Authorization: 'token ' + S.token, 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  if (!res.ok) throw new Error(`GitHub ${res.status} saving .clean-vibe-ignore`);
+  console.log('[clean-vibe] .clean-vibe-ignore saved');
 }
 
 async function fetchContent(path, retries = 3) {
@@ -552,6 +603,7 @@ async function doConnect() {
       `${totalFiles} scannable files across ${S.dirs.length} directories — full scan ~${totalMins} min at ~$${(totalFiles * 0.001).toFixed(2)} (Haiku). Select directories below to run in batches.`;
     document.getElementById('repo-title').textContent = S.repo + ' @ ' + S.branch;
 
+    await loadIgnoreFile();
     dot.className = 'dot done';
     status.textContent = `${totalFiles} files found`;
     goEstimate();
@@ -934,8 +986,8 @@ function toggleDismiss(fpKey, event) {
   } else {
     S.dismissed[fpKey] = true;
   }
-  persist();
   renderReport();
+  saveIgnoreFile().catch(e => console.error('Failed to save .clean-vibe-ignore:', e));
 }
 
 function toggleIgnoreFile(path, event) {
@@ -945,8 +997,8 @@ function toggleIgnoreFile(path, event) {
   } else {
     S.ignoredFiles.add(path);
   }
-  persist();
   renderReport();
+  saveIgnoreFile().catch(e => console.error('Failed to save .clean-vibe-ignore:', e));
 }
 
 // ─── Download ─────────────────────────────────────────────────────────────────
