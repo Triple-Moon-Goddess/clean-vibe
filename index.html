@@ -225,7 +225,7 @@
       <div class="logo">✦</div>
       <div>
         <div class="brand">clean<span>-vibe</span></div>
-        <div style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:2px;">v1.5.0</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:2px;">v1.5.1</div>
       </div>
     </div>
     <div class="header-links">
@@ -377,7 +377,7 @@
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const PROXY = 'https://clean-vibe-proxy.lisa-f9c.workers.dev';
-const VERSION = '1.5.0';
+const VERSION = '1.5.1';
 
 const SKIP_PATTERNS = [
   /node_modules/, /\.min\.js$/, /dist\//, /build\//, /\.lock$/,
@@ -601,8 +601,10 @@ function validateInputs(repo, branch, token, claude) {
 
   // GitHub token
   if (!token) return 'GitHub personal access token is required.';
-  if (!token.startsWith('ghp_') && !token.startsWith('github_pat_') && !token.startsWith('gho_') && !token.startsWith('ghs_'))
-    return 'GitHub token looks wrong — it should start with ghp_ or github_pat_. Generate one at github.com/settings/tokens.';
+  if (!token.startsWith('ghp_') && !token.startsWith('github_pat_') && !token.startsWith('gho_') && !token.startsWith('ghs_')) {
+    const preview = token.length > 6 ? token.slice(0, 6) + '...' : token || '(empty)';
+    return `GitHub token looks wrong — starts with "${preview}", expected ghp_ or github_pat_. Check for extra characters when copying.`;
+  }
   if (token.length < 20)
     return 'GitHub token is too short — paste the full token.';
 
@@ -644,8 +646,10 @@ function friendlyClaudeError(status) {
 async function doConnect() {
   let repo = normaliseRepo(document.getElementById('inp-repo').value);
   const branch = document.getElementById('inp-branch').value.trim() || 'main';
-  const token = document.getElementById('inp-token').value.trim();
-  const claude = document.getElementById('inp-claude').value.trim();
+  // Strip all whitespace including Unicode non-breaking spaces and zero-width chars
+  // that .trim() misses — common when copying from password managers or mobile keyboards
+  const token = document.getElementById('inp-token').value.replace(/^[\s\u00a0\u200b\u200c\u200d\ufeff]+|[\s\u00a0\u200b\u200c\u200d\ufeff]+$/g, '');
+  const claude = document.getElementById('inp-claude').value.replace(/^[\s\u00a0\u200b\u200c\u200d\ufeff]+|[\s\u00a0\u200b\u200c\u200d\ufeff]+$/g, '');
   const errEl = document.getElementById('connect-error');
   errEl.style.display = 'none';
 
