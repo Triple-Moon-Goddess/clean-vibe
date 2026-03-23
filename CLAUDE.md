@@ -1,5 +1,5 @@
 # clean-vibe — Full Application Documentation
-Last updated: 2026-03-23 | v1.4.8
+Last updated: 2026-03-23 | v1.5.1
 
 This document is the authoritative reference for a new Claude session working on clean-vibe.
 Read this before touching any code.
@@ -233,7 +233,7 @@ Version format: MAJOR.MINOR.PATCH
 - MINOR: new features
 - MAJOR: breaking changes
 
-Current version: **1.4.8**
+Current version: **1.5.1**
 
 ---
 
