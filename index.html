@@ -868,7 +868,10 @@ function countAll(results) {
 function renderReportView() {
   const c = countAll(S.results);
   const nFiles = Object.keys(S.results).length;
-  const nClean = Object.values(S.results).filter(r => (r.violations || []).length === 0).length;
+  const nClean = Object.entries(S.results).filter(([path, r]) => {
+    const vs = r.violations || [];
+    return vs.length === 0 || vs.every((v, vi) => !!S.dismissed[path + '::' + vi]);
+  }).length;
   const nSonnet = Object.keys(S.sonnetResults).length;
   const nBlockerFiles = Object.entries(S.results).filter(([, r]) => (r.violations || []).some(v => v.severity === 'blocker')).length;
   const unanalyzedBlockers = nBlockerFiles - nSonnet;
@@ -920,11 +923,12 @@ function renderReport() {
     const nw = vs.filter(v => v.severity === 'warning').length;
     const ns = vs.filter(v => v.severity === 'suggestion').length;
     const isClean = vs.length === 0;
+    const allDismissed = vs.length > 0 && vs.every((v, vi) => !!S.dismissed[path + '::' + vi]);
     const hasSonnet = !!S.sonnetResults[path];
     const isIgnored = S.ignoredFiles.has(path);
 
-    if (isClean && !activeFilters.has('clean')) return '';
-    if (!isClean) {
+    if ((isClean || allDismissed) && !activeFilters.has('clean')) return '';
+    if (!isClean && !allDismissed) {
       const vis = (nb > 0 && activeFilters.has('blocker')) ||
                   (nw > 0 && activeFilters.has('warning')) ||
                   (ns > 0 && activeFilters.has('suggestion'));
@@ -950,6 +954,7 @@ function renderReport() {
           (nw > 0 ? '<span class="v-count warning">' + nw + 'W</span>' : '') +
           (ns > 0 ? '<span class="v-count suggestion">' + ns + 'S</span>' : '') +
           (isClean ? '<span class="v-count clean">&#10003;</span>' : '') +
+          (allDismissed ? '<span class="v-count clean" title="All violations marked as false positives">&#10003; fp</span>' : '') +
           (hasSonnet ? '<span class="v-count sonnet">&#10022;</span>' : '') +
           (isIgnored ? '<span class="v-count" style="color:var(--red);background:var(--red-bg);">ignored</span>' : '') +
         '</div>' +
