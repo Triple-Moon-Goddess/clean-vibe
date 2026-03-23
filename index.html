@@ -225,7 +225,7 @@
       <div class="logo">✦</div>
       <div>
         <div class="brand">clean<span>-vibe</span></div>
-        <div style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:2px;">v1.4.7</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:2px;">v1.4.8</div>
       </div>
     </div>
     <div class="header-links">
@@ -377,7 +377,7 @@
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const PROXY = 'https://clean-vibe-proxy.lisa-f9c.workers.dev';
-const VERSION = '1.4.7';
+const VERSION = '1.4.8';
 
 const SKIP_PATTERNS = [
   /node_modules/, /\.min\.js$/, /dist\//, /build\//, /\.lock$/,
@@ -409,7 +409,8 @@ function persist() {
       results: S.results,
       sonnetResults: S.sonnetResults,
       scannedDirs: [...S.scannedDirs],
-
+      dismissed: S.dismissed,
+      ignoredFiles: [...S.ignoredFiles],
     }));
   } catch(e) { console.error('persist failed', e); }
 }
@@ -494,11 +495,12 @@ async function ghGet(path) {
 // ─── .clean-vibe-ignore ──────────────────────────────────────────────────────
 
 async function loadIgnoreFile() {
-  S.dismissed = {};
-  S.ignoredFiles = new Set();
   try {
     const data = await ghGet(`/repos/${S.repo}/contents/.clean-vibe-ignore?ref=${S.branch}`);
     const text = atob(data.content.replace(/\n/g, ''));
+    // Build new state first — only replace S.dismissed/S.ignoredFiles on confirmed success
+    const newDismissed = {};
+    const newIgnored = new Set();
     text.split('\n').forEach(line => {
       const trimmed = line.trim();
       if (!trimmed || trimmed.startsWith('#')) return;
@@ -507,17 +509,21 @@ async function loadIgnoreFile() {
       const key = entry.trim();
       if (!key) return;
       if (key.includes('::')) {
-        S.dismissed[key] = reason || true;
+        newDismissed[key] = reason || true;
       } else {
-        S.ignoredFiles.add(key);
+        newIgnored.add(key);
       }
     });
+    S.dismissed = newDismissed;
+    S.ignoredFiles = newIgnored;
     console.log(`[clean-vibe] loaded .clean-vibe-ignore: ${Object.keys(S.dismissed).length} dismissed, ${S.ignoredFiles.size} ignored files`);
   } catch(e) {
-    if (!e.message?.includes('404') && !e.message?.includes('Not found')) {
-      console.warn('[clean-vibe] .clean-vibe-ignore load error:', e.message);
+    if (e.message?.includes('404') || e.message?.includes('Not found')) {
+      // File doesn't exist yet — start fresh
+      S.dismissed = {};
+      S.ignoredFiles = new Set();
     }
-    // 404 = file doesn't exist yet, that's fine
+    // Any other error: keep existing in-memory state intact
   }
 }
 
