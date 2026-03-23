@@ -225,7 +225,7 @@
       <div class="logo">✦</div>
       <div>
         <div class="brand">clean<span>-vibe</span></div>
-        <div style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:2px;">v1.4.8</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:2px;">v1.4.9</div>
       </div>
     </div>
     <div class="header-links">
@@ -377,7 +377,7 @@
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const PROXY = 'https://clean-vibe-proxy.lisa-f9c.workers.dev';
-const VERSION = '1.4.8';
+const VERSION = '1.4.9';
 
 const SKIP_PATTERNS = [
   /node_modules/, /\.min\.js$/, /dist\//, /build\//, /\.lock$/,
@@ -485,9 +485,14 @@ function goReport() { renderReportView(); showPhase('report'); }
 
 async function ghGet(path) {
   const proxyUrl = PROXY + '?target=github&path=' + encodeURIComponent(path);
-  const res = await fetch(proxyUrl, {
-    headers: { Authorization: 'token ' + S.token, Accept: 'application/vnd.github.v3+json' }
-  });
+  let res;
+  try {
+    res = await fetch(proxyUrl, {
+      headers: { Authorization: 'token ' + S.token, Accept: 'application/vnd.github.v3+json' }
+    });
+  } catch(e) {
+    throw new Error('Network error — check your internet connection and try again.');
+  }
   if (!res.ok) throw new Error(friendlyGitHubError(res.status, path));
   return res.json();
 }
@@ -819,24 +824,34 @@ function buildFalsePositiveContext(filePath) {
 }
 
 async function callClaude(system, userMsg, model) {
-  const res = await fetch(PROXY, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': S.claudeKey,
-      'anthropic-version': '2023-06-01'
-    },
-    body: JSON.stringify({
-      model,
-      max_tokens: 1200,
-      system,
-      messages: [{ role: 'user', content: userMsg }]
-    })
-  });
+  let res;
+  try {
+    res = await fetch(PROXY, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': S.claudeKey,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model,
+        max_tokens: 1200,
+        system,
+        messages: [{ role: 'user', content: userMsg }]
+      })
+    });
+  } catch(e) {
+    throw new Error('Network error — check your internet connection and try again.');
+  }
   if (!res.ok) { const errData = await res.json().catch(() => ({})); throw new Error(friendlyClaudeError(res.status) + (errData.error?.message ? ' — ' + errData.error.message : '')); }
   const data = await res.json();
   const text = data.content?.[0]?.text || '{}';
-  return JSON.parse(text.replace(/```json|```/g, '').trim());
+  const clean = text.replace(/```json|```/g, '').trim();
+  try {
+    return JSON.parse(clean);
+  } catch(e) {
+    throw new Error('AI returned unexpected response format — try again. (JSON parse error)');
+  }
 }
 
 async function doScan() {
@@ -947,6 +962,10 @@ async function doSonnetPass() {
       addLog('sonnet-log', `   → ${(result.violations || []).length} violations with root cause analysis`, 'log-sonnet');
     } catch(e) {
       addLog('sonnet-log', `   ✗ ${e.message}`, 'log-err');
+      if (e.message.includes('401') || e.message.includes('403')) {
+        addLog('sonnet-log', '⛔ Sonnet pass aborted — authentication error. Check your tokens and reconnect.', 'log-err');
+        break;
+      }
     }
 
     persist();
