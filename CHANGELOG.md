@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.1] — 2026-03-23
+
+### Fixed
+- GitHub token validation false-positive: token/key inputs now strip Unicode non-breaking spaces (\u00a0) and zero-width characters (\u200b etc.) that .trim() misses — common when copying from password managers or mobile keyboards
+- Token validation error now shows the first 6 characters of what was received, making hidden-character issues visible to the user
+
 ## [1.5.0] — 2026-03-23
 
 ### Fixed
