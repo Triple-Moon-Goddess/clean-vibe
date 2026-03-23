@@ -721,7 +721,6 @@ function addLog(logId, msg, cls = '') {
 }
 
 async function callClaude(system, userMsg, model) {
-  const PROXY = 'https://clean-vibe-proxy.lisa-f9c.workers.dev';
   const res = await fetch(PROXY, {
     method: 'POST',
     headers: {
