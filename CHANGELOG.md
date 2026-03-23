@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.5] — 2026-03-23
+
+### Fixed
+- Favicon 404: added `favicon.ico` (16×16, ✦ star in clean-vibe blue) to repo root; browsers now resolve `/favicon.ico` without console errors
+- CORS: deployed Cloudflare Worker now matches `worker.js` — GET/PUT requests to `?target=github` correctly return `Access-Control-Allow-Origin: *` on all response codes
+
 ## [1.4.4] — 2026-03-23
 
 ### Fixed
