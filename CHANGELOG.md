@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.8] — 2026-03-23
+
+### Fixed
+- `loadIgnoreFile` no longer wipes `S.dismissed` and `S.ignoredFiles` before the fetch completes — if the load fails for any reason, existing in-memory state is preserved
+- `persist()` now saves `dismissed` and `ignoredFiles` to localStorage — previously these were lost on page reload and `loadPrior` could not restore them
+- CORS on GET requests now fixed (Cloudflare Worker redeployed)
+
 ## [1.4.7] — 2026-03-23
 
 ### Fixed
