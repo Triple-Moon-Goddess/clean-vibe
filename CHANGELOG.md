@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.3] — 2026-03-22
+
+### Changed
+- False positive counts shown separately in file header badges (amber `N fp`) and summary row
+- Per-file B/W/S counts now exclude dismissed violations
+- Files with all violations dismissed show green `✓ fp` badge and count as clean
+
 ## [1.3.2] — 2026-03-22
 
 ### Fixed
