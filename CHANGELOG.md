@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.9] — 2026-03-23
+
+### Fixed
+- Network offline / proxy unreachable now shows friendly error ("check your internet connection") instead of raw `TypeError: Failed to fetch` — applies to both GitHub API calls and Claude API calls
+- AI malformed JSON response now shows friendly error instead of raw `SyntaxError` from `JSON.parse`
+- Sonnet pass now aborts on 401/403 auth errors (same behaviour as Haiku scan) instead of silently logging per-file and continuing
+
 ## [1.4.8] — 2026-03-23
 
 ### Fixed
