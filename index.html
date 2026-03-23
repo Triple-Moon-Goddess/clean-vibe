@@ -225,7 +225,7 @@
       <div class="logo">✦</div>
       <div>
         <div class="brand">clean<span>-vibe</span></div>
-        <div style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:2px;">v1.5.4</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:2px;">v1.5.5</div>
       </div>
     </div>
     <div class="header-links">
@@ -377,7 +377,7 @@
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const PROXY = 'https://clean-vibe-proxy.lisa-f9c.workers.dev';
-const VERSION = '1.5.4';
+const VERSION = '1.5.5';
 
 const SKIP_PATTERNS = [
   /node_modules/, /\.min\.js$/, /dist\//, /build\//, /\.lock$/,
@@ -502,7 +502,10 @@ async function ghGet(path) {
 async function loadIgnoreFile() {
   try {
     const data = await ghGet(`/repos/${S.repo}/contents/.clean-vibe-ignore?ref=${S.branch}`);
-    const text = atob(data.content.replace(/\n/g, ''));
+    // Decode base64 → UTF-8 bytes → string (handles em dashes and all Unicode)
+    const raw = atob(data.content.replace(/\n/g, ''));
+    const bytes = Uint8Array.from(raw, c => c.charCodeAt(0));
+    const text = new TextDecoder().decode(bytes);
     // Build new state first — only replace S.dismissed/S.ignoredFiles on confirmed success
     const newDismissed = {};
     const newIgnored = new Set();
@@ -539,7 +542,8 @@ async function saveIgnoreFile() {
     lines.push(typeof v === 'string' && v ? k + '  # ' + v : k);
   });
   const text = lines.join('\n') + '\n';
-  const encoded = btoa(unescape(encodeURIComponent(text)));
+  // TextEncoder correctly handles all Unicode (em dashes, curly quotes, etc.)
+  const encoded = btoa(String.fromCharCode(...new TextEncoder().encode(text)));
 
   let sha = '';
   try {
