@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.4.6] — 2026-03-23
+
+### Improved
+- Input validation: repo format auto-normalised (paste full GitHub URL or owner/repo)
+- Input validation: GitHub token format check (must start with ghp_ or github_pat_)
+- Input validation: Anthropic key format check (must start with sk-ant-)
+- GitHub errors translated to plain English: 401 → token expired/wrong scope, 403 → no permission, 404 → repo/branch not found, 429 → rate limit
+- Claude API errors translated: 401 → bad key, 429 → rate limit, 500/529 → overloaded
+- Zero scannable files: explicit error with supported extensions listed
+- File truncation: logged in scan/sonnet log when file exceeds 14KB limit
+- Auth errors (401/403) during scan now abort the whole scan immediately
+- saveIgnoreFile failures now shown to user as toast notification (previously silent)
+
 ## [1.4.5] — 2026-03-23
 
 ### Fixed
