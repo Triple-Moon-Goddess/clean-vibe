@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.5.4] — 2026-03-23
+
+### Fixed
+- JSON parse error on files with many violations: `max_tokens` raised from 1200 to 2048 — large TypeScript files were causing the AI to hit the token limit mid-response, producing truncated JSON that failed to parse
+
 ## [1.5.3] — 2026-03-23
 
 ### Fixed
