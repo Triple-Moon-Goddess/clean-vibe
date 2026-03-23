@@ -905,7 +905,19 @@ function toggleFilter(el) {
   renderReport();
 }
 
+function getOpenFileIds() {
+  return [...document.querySelectorAll('.file-body.open')].map(el => el.id);
+}
+
+function restoreOpenFileIds(ids) {
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.add('open');
+  });
+}
+
 function renderReport() {
+  const openIds = getOpenFileIds();
   const search = (document.getElementById('file-search')?.value || '').toLowerCase();
   const body = document.getElementById('report-body');
 
@@ -997,6 +1009,7 @@ function renderReport() {
   }).join('');
 
   body.innerHTML = html || '<div class="empty">No results match current filters</div>';
+  restoreOpenFileIds(openIds);
 }
 
 function toggleFile(id) {
