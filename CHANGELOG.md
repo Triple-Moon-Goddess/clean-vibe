@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0] — 2026-03-22
+
+### Added
+- False positive reason: clicking "false positive?" now shows an inline text input
+- Reason saved to `.clean-vibe-ignore` as an inline comment (e.g. `src/vite.config.ts::0  # follows Rollup naming convention`)
+- Reason displayed under the struck-through violation in the report
+
 ## [1.2.0] — 2026-03-14
 
 ### Added
