@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.1] — 2026-03-22
+
+### Changed
+- AI now acknowledges false positive decisions but may add a single "FP note:" if it has a strong technical objection
+- FP notes render in amber italic with a ⚠ prefix — distinct from regular fix suggestions
+- Developer decision is always respected — FP notes are informational only, not re-raised violations
+
 ## [1.4.0] — 2026-03-22
 
 ### Added
