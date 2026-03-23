@@ -225,7 +225,7 @@
       <div class="logo">✦</div>
       <div>
         <div class="brand">clean<span>-vibe</span></div>
-        <div style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:2px;">v1.5.1</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:2px;">v1.5.2</div>
       </div>
     </div>
     <div class="header-links">
@@ -377,7 +377,7 @@
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const PROXY = 'https://clean-vibe-proxy.lisa-f9c.workers.dev';
-const VERSION = '1.5.1';
+const VERSION = '1.5.2';
 
 const SKIP_PATTERNS = [
   /node_modules/, /\.min\.js$/, /dist\//, /build\//, /\.lock$/,
@@ -829,11 +829,14 @@ function addLog(logId, msg, cls = '') {
 
 function buildFalsePositiveContext(filePath) {
   if (!S.dismissed || Object.keys(S.dismissed).length === 0) return '';
+  const fileVs = (S.results[filePath] || {}).violations || [];
   const relevant = Object.entries(S.dismissed)
     .filter(([key]) => key.startsWith(filePath + '::'))
     .map(([key, reason]) => {
-      const idx = key.split('::')[1];
-      return reason && typeof reason === 'string' ? `  - violation ${idx}: ${reason}` : `  - violation ${idx}`;
+      const idx = parseInt(key.split('::')[1], 10);
+      const issueText = fileVs[idx] ? fileVs[idx].issue : `violation at index ${idx}`;
+      const reasonText = reason && typeof reason === 'string' ? ` (reason: ${reason})` : '';
+      return `  - "${issueText}"${reasonText}`;
     });
   if (relevant.length === 0) return '';
   return '\n\nPreviously dismissed violations — DO NOT raise these again under any circumstances:\n' + relevant.join('\n') + '\n(These have been reviewed and accepted by the developer. Omit them entirely from your violations array.)';
@@ -1130,7 +1133,8 @@ function renderReport() {
         '</div>' +
         (isIgnored ? '<div class="ignored-banner">This file is marked as ignored — violations tracked but excluded from summary counts.</div>' : '') +
         (result.summary ? '<div class="file-summary">' + result.summary + '</div>' : '') +
-        visVs.map(function(v, vi) {
+        vs.map(function(v, vi) {
+          if (!((v.severity==='blocker'&&activeFilters.has('blocker'))||(v.severity==='warning'&&activeFilters.has('warning'))||(v.severity==='suggestion'&&activeFilters.has('suggestion')))) return '';
           const sv = sonnetVs.find(s => s.principle === v.principle || s.issue === v.issue);
           const fpKey = (path + '::' + vi).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
           const isDismissed = !!S.dismissed[path + '::' + vi];
