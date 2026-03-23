@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.7] — 2026-03-23
+
+### Fixed
+- `buildFalsePositiveContext` was called but never defined — caused "is not a function" crash on every file scan
+- `.clean-vibe-ignore` 404 on first use no longer emits a spurious console warning (expected when file doesn't exist yet)
+
 ## [1.4.6] — 2026-03-23
 
 ### Improved
