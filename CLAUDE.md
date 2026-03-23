@@ -1,5 +1,5 @@
 # clean-vibe — Full Application Documentation
-Last updated: 2026-03-23 | v1.4.7
+Last updated: 2026-03-23 | v1.4.8
 
 This document is the authoritative reference for a new Claude session working on clean-vibe.
 Read this before touching any code.
@@ -110,11 +110,13 @@ let S = {
 
 ### Persistence
 `persist()` saves to `localStorage` key `clean_vibe_v1`:
-- `repo`, `branch`, `results`, `sonnetResults`, `scannedDirs`
-- Does NOT persist: `token`, `claudeKey`, `contentCache`, `dismissed`, `ignoredFiles`
+- `repo`, `branch`, `results`, `sonnetResults`, `scannedDirs`, `dismissed`, `ignoredFiles`
+- Does NOT persist: `token`, `claudeKey`, `contentCache`
 
-`dismissed` and `ignoredFiles` are persisted to `.clean-vibe-ignore` in the **scanned repo**
-via GitHub API. They are loaded via `loadIgnoreFile()` on every connect.
+`dismissed` and `ignoredFiles` are ALSO written to `.clean-vibe-ignore` in the **scanned repo**
+via GitHub API on every toggle. They are loaded via `loadIgnoreFile()` on every connect.
+`loadIgnoreFile()` only replaces in-memory state after a confirmed successful fetch — errors
+leave existing state intact.
 
 ---
 
@@ -231,7 +233,7 @@ Version format: MAJOR.MINOR.PATCH
 - MINOR: new features
 - MAJOR: breaking changes
 
-Current version: **1.4.7**
+Current version: **1.4.8**
 
 ---
 
@@ -263,23 +265,15 @@ GitHub Pages auto-deploys from `main` branch root (~1-2 min after push).
 
 ---
 
-## Known issues to fix (as of v1.4.7)
+## Known issues (as of v1.4.8)
 
-### CRITICAL: CORS on GitHub API calls
-**Error:** `Access-Control-Allow-Headers` in preflight does not allow `Authorization` header.
-**Root cause:** The Cloudflare Worker's `OPTIONS` response has `'Access-Control-Allow-Headers': '*'`
-but some browsers don't accept wildcard for credentialed requests with `Authorization` header.
-**Fix needed:** In `worker.js`, change CORS header to explicit list:
-```javascript
-'Access-Control-Allow-Headers': 'Content-Type, x-api-key, anthropic-version, Authorization, Accept',
-```
-Then **redeploy the worker** in the Cloudflare dashboard — this CANNOT be done from code alone.
+No open issues. All previously documented issues have been resolved:
 
-### favicon 404
-`GET https://triple-moon-goddess.github.io/favicon.ico 404`
-**Root cause:** `index.html` references `favicon.ico` but no `favicon.ico` file is in the repo.
-The SVG inline favicon fallback is there and works — the 404 is the browser trying the `.ico` path.
-**Fix:** Either add a `favicon.ico` file to the repo, or remove the `<link rel="icon" href="favicon.ico">` line.
+- **favicon 404** — fixed in v1.4.5: `favicon.ico` added to repo root (16×16, ✦ star, `#4f8ef7`)
+- **CORS on GitHub API calls** — fixed: Cloudflare Worker redeployed, GET/PUT/POST all return `Access-Control-Allow-Origin: *`
+- **`buildFalsePositiveContext` undefined** — fixed in v1.4.7: function added
+- **dismissals lost on reload** — fixed in v1.4.8: `persist()` now saves `dismissed` + `ignoredFiles`
+- **`loadIgnoreFile` wipes state on error** — fixed in v1.4.8: state only replaced after confirmed successful fetch
 
 ---
 
