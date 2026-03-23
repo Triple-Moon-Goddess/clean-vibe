@@ -349,6 +349,7 @@
         <div class="stat"><span class="stat-n amber" id="r-w">0</span><span class="stat-l">warnings</span></div>
         <div class="stat"><span class="stat-n gray" id="r-s">0</span><span class="stat-l">suggestions</span></div>
         <div class="stat"><span class="stat-n green" id="r-clean">0</span><span class="stat-l">clean</span></div>
+        <div class="stat"><span class="stat-n" style="color:var(--amber)" id="r-fp">0</span><span class="stat-l">false positives</span></div>
         <div class="stat"><span class="stat-n" style="color:var(--purple)" id="r-sonnet">0</span><span class="stat-l">sonnet analyzed</span></div>
       </div>
 
@@ -881,6 +882,8 @@ function renderReportView() {
   document.getElementById('r-w').textContent = c.warning;
   document.getElementById('r-s').textContent = c.suggestion;
   document.getElementById('r-clean').textContent = nClean;
+  const nFp = Object.values(S.dismissed).filter(Boolean).length;
+  document.getElementById('r-fp').textContent = nFp;
   document.getElementById('r-sonnet').textContent = nSonnet;
   document.getElementById('report-title').textContent = S.repo || 'Report';
 
@@ -934,8 +937,9 @@ function renderReport() {
     const nb = vs.filter((v, vi) => v.severity === 'blocker' && !S.dismissed[path + '::' + vi]).length;
     const nw = vs.filter((v, vi) => v.severity === 'warning' && !S.dismissed[path + '::' + vi]).length;
     const ns = vs.filter((v, vi) => v.severity === 'suggestion' && !S.dismissed[path + '::' + vi]).length;
+    const nfp = vs.filter((v, vi) => !!S.dismissed[path + '::' + vi]).length;
     const isClean = vs.length === 0;
-    const allDismissed = vs.length > 0 && vs.every((v, vi) => !!S.dismissed[path + '::' + vi]);
+    const allDismissed = vs.length > 0 && nfp === vs.length;
     const hasSonnet = !!S.sonnetResults[path];
     const isIgnored = S.ignoredFiles.has(path);
 
@@ -967,6 +971,7 @@ function renderReport() {
           (ns > 0 ? '<span class="v-count suggestion">' + ns + 'S</span>' : '') +
           (isClean ? '<span class="v-count clean">&#10003;</span>' : '') +
           (allDismissed ? '<span class="v-count clean" title="All violations marked as false positives">&#10003; fp</span>' : '') +
+          (!allDismissed && nfp > 0 ? '<span class="v-count" style="background:var(--amber-bg);color:var(--amber);border:1px solid rgba(245,166,35,0.3);" title="' + nfp + ' false positive' + (nfp > 1 ? 's' : '') + '">' + nfp + ' fp</span>' : '') +
           (hasSonnet ? '<span class="v-count sonnet">&#10022;</span>' : '') +
           (isIgnored ? '<span class="v-count" style="color:var(--red);background:var(--red-bg);">ignored</span>' : '') +
         '</div>' +
