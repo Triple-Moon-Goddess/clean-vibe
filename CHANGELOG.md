@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.4.3] — 2026-03-23
+
+### Fixed
+- Removed duplicate script block — JS was being loaded twice causing double execution
+- Removed duplicate version display div in header
+- PROXY constant moved to correct top-level scope — fixes "PROXY is not defined" error
+- GitHub API calls now routed through Cloudflare Worker proxy — fixes CORS on GitHub Pages
+
 ## [1.4.2] — 2026-03-22
 
 ### Fixed
