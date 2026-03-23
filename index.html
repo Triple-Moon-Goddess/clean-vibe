@@ -479,7 +479,8 @@ function goReport() { renderReportView(); showPhase('report'); }
 // ─── GitHub API ───────────────────────────────────────────────────────────────
 
 async function ghGet(path) {
-  const res = await fetch('https://api.github.com' + path, {
+  const proxyUrl = PROXY + '?target=github&path=' + encodeURIComponent(path);
+  const res = await fetch(proxyUrl, {
     headers: { Authorization: 'token ' + S.token, Accept: 'application/vnd.github.v3+json' }
   });
   if (!res.ok) throw new Error(`GitHub ${res.status}: ${path}`);
@@ -535,7 +536,8 @@ async function saveIgnoreFile() {
   };
   if (sha) payload.sha = sha;
 
-  const res = await fetch(`https://api.github.com/repos/${S.repo}/contents/.clean-vibe-ignore`, {
+  const ghPath = `/repos/${S.repo}/contents/.clean-vibe-ignore`;
+  const res = await fetch(PROXY + '?target=github&path=' + encodeURIComponent(ghPath), {
     method: 'PUT',
     headers: { Authorization: 'token ' + S.token, 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
