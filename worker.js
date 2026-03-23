@@ -3,28 +3,28 @@ export default {
     const CORS_HEADERS = {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, PUT, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, x-api-key, anthropic-version, Authorization, Accept',
+      'Access-Control-Allow-Headers': '*',
       'Access-Control-Max-Age': '86400',
     };
 
     if (request.method === 'OPTIONS') {
-      return new Response(null, { headers: CORS_HEADERS });
+      return new Response(null, { status: 204, headers: CORS_HEADERS });
     }
 
     const url = new URL(request.url);
     const target = url.searchParams.get('target');
 
-    // GitHub API proxy — GET and PUT requests
+    // GitHub API proxy
     if (target === 'github') {
       const ghPath = url.searchParams.get('path') || '';
       const ghUrl = 'https://api.github.com' + ghPath;
-      const authHeader = request.headers.get('Authorization');
+      const authHeader = request.headers.get('Authorization') || request.headers.get('authorization') || '';
 
       const res = await fetch(ghUrl, {
         method: request.method,
         headers: {
-          'Authorization': authHeader || '',
-          'Accept': request.headers.get('Accept') || 'application/vnd.github.v3+json',
+          'Authorization': authHeader,
+          'Accept': 'application/vnd.github.v3+json',
           'Content-Type': 'application/json',
           'User-Agent': 'clean-vibe-proxy',
         },
@@ -38,7 +38,7 @@ export default {
       });
     }
 
-    // Anthropic API proxy — POST only
+    // Anthropic API proxy
     if (request.method !== 'POST') {
       return new Response('Method not allowed', { status: 405, headers: CORS_HEADERS });
     }
