@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.0] — 2026-03-23
+
+### Fixed
+- False positives were being re-raised on re-scan despite being dismissed — root cause: system prompts had no FP rules, so the AI's "strict reviewer" persona overrode the user-message hint
+- Added explicit FALSE POSITIVES section to both HAIKU_SYSTEM and SONNET_SYSTEM: dismissed violations must be omitted from the violations array entirely, not reworded or re-raised at lower severity
+- Strengthened `buildFalsePositiveContext` wording from "treat as false positives" to "DO NOT raise these again under any circumstances" with explicit instruction to omit from violations array
+
 ## [1.4.9] — 2026-03-23
 
 ### Fixed
