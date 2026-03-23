@@ -217,6 +217,7 @@
 </style>
 </head>
 <body>
+<div id="ignore-save-error" style="display:none;position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--red);color:#fff;padding:8px 16px;border-radius:6px;font-size:12px;z-index:9999;max-width:480px;text-align:center;"></div>
 <div class="app">
 
   <div class="header">
@@ -224,7 +225,7 @@
       <div class="logo">✦</div>
       <div>
         <div class="brand">clean<span>-vibe</span></div>
-        <div style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:2px;">v1.4.5</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:2px;">v1.4.6</div>
       </div>
     </div>
     <div class="header-links">
@@ -376,7 +377,7 @@
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const PROXY = 'https://clean-vibe-proxy.lisa-f9c.workers.dev';
-const VERSION = '1.4.5';
+const VERSION = '1.4.6';
 
 const SKIP_PATTERNS = [
   /node_modules/, /\.min\.js$/, /dist\//, /build\//, /\.lock$/,
@@ -486,7 +487,7 @@ async function ghGet(path) {
   const res = await fetch(proxyUrl, {
     headers: { Authorization: 'token ' + S.token, Accept: 'application/vnd.github.v3+json' }
   });
-  if (!res.ok) throw new Error(`GitHub ${res.status}: ${path}`);
+  if (!res.ok) throw new Error(friendlyGitHubError(res.status, path));
   return res.json();
 }
 
@@ -566,16 +567,80 @@ async function fetchContent(path, retries = 3) {
 
 // ─── Connect + estimate ───────────────────────────────────────────────────────
 
+// ─── Input validation ────────────────────────────────────────────────────────
+
+function normaliseRepo(raw) {
+  // Accept: "owner/repo", "https://github.com/owner/repo", "github.com/owner/repo"
+  raw = raw.trim();
+  const match = raw.match(/(?:https?:\/\/)?(?:www\.)?github\.com\/([^/]+\/[^/\s?#]+)/);
+  if (match) return match[1].replace(/\.git$/, '');
+  return raw.replace(/\.git$/, '');
+}
+
+function validateInputs(repo, branch, token, claude) {
+  // Repo format
+  if (!repo) return 'Repo is required — enter owner/repo or paste the GitHub URL.';
+  if (!repo.includes('/') || repo.split('/').length !== 2 || repo.split('/').some(p => !p))
+    return 'Repo must be in owner/repo format — e.g. facebook/react';
+  if (/[\s]/.test(repo))
+    return 'Repo name contains spaces — check for typos.';
+
+  // GitHub token
+  if (!token) return 'GitHub personal access token is required.';
+  if (!token.startsWith('ghp_') && !token.startsWith('github_pat_') && !token.startsWith('gho_') && !token.startsWith('ghs_'))
+    return 'GitHub token looks wrong — it should start with ghp_ or github_pat_. Generate one at github.com/settings/tokens.';
+  if (token.length < 20)
+    return 'GitHub token is too short — paste the full token.';
+
+  // Anthropic key
+  if (!claude) return 'Anthropic API key is required.';
+  if (!claude.startsWith('sk-ant-'))
+    return 'Anthropic key looks wrong — it should start with sk-ant-. Find yours at console.anthropic.com.';
+  if (claude.length < 30)
+    return 'Anthropic API key is too short — paste the full key.';
+
+  // Branch
+  if (branch && /[\s]/.test(branch))
+    return 'Branch name contains spaces — check for typos.';
+
+  return null; // valid
+}
+
+function friendlyGitHubError(status, path) {
+  if (status === 401) return 'GitHub token rejected (401) — it may be expired or lacks repo scope. Generate a new token at github.com/settings/tokens with the repo checkbox checked.';
+  if (status === 403) return 'GitHub access forbidden (403) — your token lacks permission for this repo. Make sure the token has repo scope.';
+  if (status === 404) {
+    if (path && path.includes('/git/trees/')) return 'Repo or branch not found (404) — check the repo name and branch. If the repo is private, make sure your token has access.';
+    return 'Not found (404) — ' + (path || 'resource missing');
+  }
+  if (status === 422) return 'GitHub rejected the request (422) — check the branch name exists in this repo.';
+  if (status === 429) return 'GitHub rate limit hit (429) — wait a minute then try again.';
+  if (status === 500 || status === 502 || status === 503) return 'GitHub is having issues (' + status + ') — try again in a moment.';
+  return 'GitHub error ' + status + (path ? ': ' + path : '');
+}
+
+function friendlyClaudeError(status) {
+  if (status === 401) return 'Anthropic key rejected (401) — check your API key at console.anthropic.com.';
+  if (status === 403) return 'Anthropic key lacks permission (403) — your key may be restricted.';
+  if (status === 429) return 'Anthropic rate limit hit (429) — too many requests. Slow down or wait a moment.';
+  if (status === 500 || status === 529) return 'Anthropic API overloaded (' + status + ') — try again in a moment.';
+  return 'Claude API error ' + status;
+}
+
 async function doConnect() {
-  const repo = document.getElementById('inp-repo').value.trim();
+  let repo = normaliseRepo(document.getElementById('inp-repo').value);
   const branch = document.getElementById('inp-branch').value.trim() || 'main';
   const token = document.getElementById('inp-token').value.trim();
   const claude = document.getElementById('inp-claude').value.trim();
   const errEl = document.getElementById('connect-error');
   errEl.style.display = 'none';
 
-  if (!repo || !token || !claude) {
-    errEl.textContent = 'Repo, GitHub token, and Anthropic key are required.';
+  // Auto-fill normalised repo back into field
+  if (repo) document.getElementById('inp-repo').value = repo;
+
+  const validationError = validateInputs(repo, branch, token, claude);
+  if (validationError) {
+    errEl.textContent = validationError;
     errEl.style.display = 'block'; return;
   }
 
@@ -616,6 +681,13 @@ async function doConnect() {
     }
 
     const totalFiles = scannable.length;
+    if (totalFiles === 0) {
+      dot.className = 'dot error';
+      errEl.textContent = 'No scannable files found in this repo. clean-vibe supports: ' + SCAN_EXTS.join(', ') + '. Check that the branch contains source files.';
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      return;
+    }
     const totalMins = Math.ceil(totalFiles * 0.4);
     document.getElementById('est-summary').textContent =
       `${totalFiles} scannable files across ${S.dirs.length} directories — full scan ~${totalMins} min at ~$${(totalFiles * 0.001).toFixed(2)} (Haiku). Select directories below to run in batches.`;
@@ -738,7 +810,7 @@ async function callClaude(system, userMsg, model) {
       messages: [{ role: 'user', content: userMsg }]
     })
   });
-  if (!res.ok) throw new Error(`Claude API ${res.status}`);
+  if (!res.ok) { const errData = await res.json().catch(() => ({})); throw new Error(friendlyClaudeError(res.status) + (errData.error?.message ? ' — ' + errData.error.message : '')); }
   const data = await res.json();
   const text = data.content?.[0]?.text || '{}';
   return JSON.parse(text.replace(/```json|```/g, '').trim());
@@ -778,7 +850,9 @@ async function doScan() {
       const content = await fetchContent(file.path);
       S.contentCache[file.path] = content;
       const MAX = 14000;
-      const snippet = content.length > MAX ? content.slice(0, MAX) + '\n// [truncated]' : content;
+      const truncated = content.length > MAX;
+      const snippet = truncated ? content.slice(0, MAX) + '\n// [truncated]' : content;
+      if (truncated) addLog('scan-log', `   ⚠ File truncated (${Math.round(content.length/1000)}KB > 14KB limit) — analysis covers first 14KB only`);
       const result = await callClaude(HAIKU_SYSTEM, `File: ${file.path}${buildFalsePositiveContext(file.path)}\n\nCode:\n${snippet}`, 'claude-haiku-4-5-20251001');
       S.results[file.path] = result;
 
@@ -791,6 +865,11 @@ async function doScan() {
     } catch(e) {
       addLog('scan-log', `   ✗ ${e.message}`, 'log-err');
       S.results[file.path] = { violations: [], summary: 'Error: ' + e.message };
+      // Fatal errors: abort the whole scan
+      if (e.message.includes('401') || e.message.includes('403')) {
+        addLog('scan-log', '⛔ Scan aborted — authentication error. Check your tokens and reconnect.', 'log-err');
+        S.stopRequested = true;
+      }
     }
 
     done++;
@@ -834,7 +913,9 @@ async function doSonnetPass() {
     try {
       const content = S.contentCache[path] || await fetchContent(path);
       const MAX = 14000;
-      const snippet = content.length > MAX ? content.slice(0, MAX) + '\n// [truncated]' : content;
+      const truncatedS = content.length > MAX;
+      const snippet = truncatedS ? content.slice(0, MAX) + '\n// [truncated]' : content;
+      if (truncatedS) addLog('sonnet-log', `   ⚠ File truncated (${Math.round(content.length/1000)}KB > 14KB limit)`, 'log-err');
       const knownBlockers = (S.results[path]?.violations || []).filter(v => v.severity === 'blocker');
       const fpContextSonnet = buildFalsePositiveContext(path);
       const prompt = `File: ${path}${fpContextSonnet}\n\nKnown blockers from initial scan:\n${JSON.stringify(knownBlockers, null, 2)}\n\nFull file:\n${snippet}`;
@@ -1033,7 +1114,11 @@ function toggleDismiss(fpKey, event) {
   if (S.dismissed[fpKey]) {
     delete S.dismissed[fpKey];
     renderReport();
-    saveIgnoreFile().catch(e => console.error('Failed to save .clean-vibe-ignore:', e));
+    saveIgnoreFile().catch(e => {
+      console.error('Failed to save .clean-vibe-ignore:', e);
+      const el = document.getElementById('ignore-save-error');
+      if (el) { el.textContent = 'Failed to save ignore file: ' + e.message; el.style.display = 'block'; setTimeout(() => { el.style.display = 'none'; }, 6000); }
+    });
   } else {
     showReasonInput(fpKey, event.target);
   }
@@ -1055,7 +1140,11 @@ function showReasonInput(fpKey, btn) {
       const reason = input.value.trim();
       S.dismissed[fpKey] = reason || true;
       renderReport();
-      saveIgnoreFile().catch(err => console.error('Failed to save .clean-vibe-ignore:', err));
+      saveIgnoreFile().catch(err => {
+        console.error('Failed to save .clean-vibe-ignore:', err);
+        const el = document.getElementById('ignore-save-error');
+        if (el) { el.textContent = 'Failed to save ignore file: ' + err.message; el.style.display = 'block'; setTimeout(() => { el.style.display = 'none'; }, 6000); }
+      });
     }
     if (e.key === 'Escape') {
       input.remove();
