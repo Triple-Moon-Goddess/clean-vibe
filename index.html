@@ -931,9 +931,9 @@ function renderReport() {
 
   const html = entries.map(([path, result]) => {
     const vs = result.violations || [];
-    const nb = vs.filter(v => v.severity === 'blocker').length;
-    const nw = vs.filter(v => v.severity === 'warning').length;
-    const ns = vs.filter(v => v.severity === 'suggestion').length;
+    const nb = vs.filter((v, vi) => v.severity === 'blocker' && !S.dismissed[path + '::' + vi]).length;
+    const nw = vs.filter((v, vi) => v.severity === 'warning' && !S.dismissed[path + '::' + vi]).length;
+    const ns = vs.filter((v, vi) => v.severity === 'suggestion' && !S.dismissed[path + '::' + vi]).length;
     const isClean = vs.length === 0;
     const allDismissed = vs.length > 0 && vs.every((v, vi) => !!S.dismissed[path + '::' + vi]);
     const hasSonnet = !!S.sonnetResults[path];
