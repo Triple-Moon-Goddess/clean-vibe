@@ -225,7 +225,7 @@
       <div class="logo">✦</div>
       <div>
         <div class="brand">clean<span>-vibe</span></div>
-        <div style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:2px;">v1.4.6</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:2px;">v1.4.7</div>
       </div>
     </div>
     <div class="header-links">
@@ -377,7 +377,7 @@
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const PROXY = 'https://clean-vibe-proxy.lisa-f9c.workers.dev';
-const VERSION = '1.4.6';
+const VERSION = '1.4.7';
 
 const SKIP_PATTERNS = [
   /node_modules/, /\.min\.js$/, /dist\//, /build\//, /\.lock$/,
@@ -514,7 +514,10 @@ async function loadIgnoreFile() {
     });
     console.log(`[clean-vibe] loaded .clean-vibe-ignore: ${Object.keys(S.dismissed).length} dismissed, ${S.ignoredFiles.size} ignored files`);
   } catch(e) {
-    // File doesn't exist yet — that's fine
+    if (!e.message?.includes('404') && !e.message?.includes('Not found')) {
+      console.warn('[clean-vibe] .clean-vibe-ignore load error:', e.message);
+    }
+    // 404 = file doesn't exist yet, that's fine
   }
 }
 
@@ -793,6 +796,20 @@ function addLog(logId, msg, cls = '') {
   line.textContent = msg;
   log.appendChild(line);
   log.scrollTop = log.scrollHeight;
+}
+
+// ─── False positive context builder ─────────────────────────────────────────
+
+function buildFalsePositiveContext(filePath) {
+  if (!S.dismissed || Object.keys(S.dismissed).length === 0) return '';
+  const relevant = Object.entries(S.dismissed)
+    .filter(([key]) => key.startsWith(filePath + '::'))
+    .map(([key, reason]) => {
+      const idx = key.split('::')[1];
+      return reason && typeof reason === 'string' ? `  - violation ${idx}: ${reason}` : `  - violation ${idx}`;
+    });
+  if (relevant.length === 0) return '';
+  return '\n\nPreviously dismissed violations (treat as false positives):\n' + relevant.join('\n');
 }
 
 async function callClaude(system, userMsg, model) {
