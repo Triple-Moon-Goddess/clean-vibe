@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.1] — 2026-03-22
+
+### Fixed
+- Files where all violations are marked as false positives now show a green ✓ fp badge
+- Such files count as clean in the summary totals
+- Filtered correctly under the Clean filter
+
 ## [1.3.0] — 2026-03-22
 
 ### Added
