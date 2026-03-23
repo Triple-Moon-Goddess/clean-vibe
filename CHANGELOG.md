@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0] — 2026-03-22
+
+### Added
+- False positive context fed into both Haiku and Sonnet analysis prompts
+- AI is told which violations were previously dismissed and why, preventing re-raising of already-reviewed items
+- Eliminates the cycling problem where the AI contradicts prior session decisions
+
 ## [1.3.3] — 2026-03-22
 
 ### Changed
