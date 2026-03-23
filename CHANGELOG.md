@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.4] — 2026-03-23
+
+### Fixed
+- CORS preflight now passes: worker uses wildcard for Access-Control-Allow-Headers
+- Favicon 404 resolved with inline SVG data URI — no separate file needed
+
 ## [1.4.3] — 2026-03-23
 
 ### Fixed
