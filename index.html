@@ -177,6 +177,8 @@
   .fp-btn:hover { border-color: var(--border2); color: var(--text2); }
   .fp-btn.active { background: var(--amber-bg); color: var(--amber); border-color: rgba(245,166,35,0.3); }
   .fp-reason { font-size: 11px; color: var(--amber); margin-top: 4px; font-style: italic; padding-left: 2px; }
+  .v-fix.fp-note { color: var(--amber); font-style: italic; }
+  .v-fix.fp-note::before { content: '⚠ '; }
   .fp-reason-input { font-size: 11px; padding: 4px 8px; background: var(--bg3); border: 1px solid rgba(245,166,35,0.3); border-radius: var(--radius); color: var(--text); width: 100%; margin-top: 4px; font-family: inherit; }
   .fp-reason-input:focus { outline: none; border-color: rgba(245,166,35,0.6); }
   .ignore-file-btn { font-size: 11px; padding: 3px 8px; background: transparent; border: 1px solid var(--border); border-radius: var(--radius); color: var(--text3); cursor: pointer; font-family: inherit; }
@@ -998,7 +1000,7 @@ function renderReport() {
                 (v.section ? '<span class="v-section">' + v.section + '</span>' : '') +
                 (sv && sv.smellCategory ? '<span class="v-section" style="color:var(--purple);background:var(--purple-bg);">' + sv.smellCategory + '</span>' : '') +
               '</div>' +
-              '<div class="v-fix">Fix: ' + v.fix + '</div>' +
+              '<div class="v-fix' + (v.fix && v.fix.startsWith('FP note:') ? ' fp-note' : '') + '">' + (v.fix && v.fix.startsWith('FP note:') ? v.fix : 'Fix: ' + v.fix) + '</div>' +
               (sv && sv.rootCause ? '<div class="v-root-cause">Root cause: ' + sv.rootCause + '</div>' : '') +
               (sv && sv.example ? '<div class="v-example">' + sv.example.replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</div>' : '') +
             '</div>' +
