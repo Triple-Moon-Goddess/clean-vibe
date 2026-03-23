@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.5.3] — 2026-03-23
+
+### Fixed
+- False positives being ignored by AI: dismissed violations were listed before the code in the prompt — after 14KB of code the AI had lost the instruction by the time it generated its response. Moved FP context to after the code in both Haiku and Sonnet prompts so it's the last thing the AI reads before responding.
+
 ## [1.5.2] — 2026-03-23
 
 ### Fixed
