@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.2] — 2026-03-22
+
+### Fixed
+- GitHub API calls now routed through Cloudflare Worker proxy — fixes CORS errors on GitHub Pages
+- Affects file tree fetch, file content fetch, and .clean-vibe-ignore read/write
+
 ## [1.4.1] — 2026-03-22
 
 ### Changed
