@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.5] — 2026-03-23
+
+### Fixed
+- Unicode corruption in `.clean-vibe-ignore`: em dashes, curly quotes, and any non-ASCII characters in false positive reasons were saved correctly but loaded back as mojibake (e.g. `—` became `ÃÂÃÂ...`)
+- Root cause: `saveIgnoreFile` used `btoa(unescape(encodeURIComponent()))` which encodes UTF-8 correctly, but `loadIgnoreFile` used bare `atob()` which decodes base64 to raw Latin-1 bytes without converting back to UTF-8
+- Fix: save now uses `TextEncoder` to get UTF-8 bytes before base64; load now uses `TextDecoder` to decode bytes back to a proper UTF-8 string
+
 ## [1.5.4] — 2026-03-23
 
 ### Fixed
