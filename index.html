@@ -830,7 +830,8 @@ async function doSonnetPass() {
       const MAX = 14000;
       const snippet = content.length > MAX ? content.slice(0, MAX) + '\n// [truncated]' : content;
       const knownBlockers = (S.results[path]?.violations || []).filter(v => v.severity === 'blocker');
-      const prompt = `File: ${path}\n\nKnown blockers from initial scan:\n${JSON.stringify(knownBlockers, null, 2)}\n\nFull file:\n${snippet}`;
+      const fpContextSonnet = buildFalsePositiveContext(path);
+      const prompt = `File: ${path}${fpContextSonnet}\n\nKnown blockers from initial scan:\n${JSON.stringify(knownBlockers, null, 2)}\n\nFull file:\n${snippet}`;
       const result = await callClaude(SONNET_SYSTEM, prompt, 'claude-sonnet-4-20250514');
       S.sonnetResults[path] = result;
       addLog('sonnet-log', `   → ${(result.violations || []).length} violations with root cause analysis`, 'log-sonnet');
