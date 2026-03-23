@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.2] — 2026-03-23
+
+### Fixed
+- False positives re-appearing on re-scan — two root causes:
+  1. `renderReport` iterated `visVs` (filter-filtered array) for violation indices — when filters hid earlier violations, `vi` in `visVs` didn't match the `vs` index stored in `S.dismissed`, so `isDismissed` lookups silently failed. Fixed: now iterates `vs` (full array) with original indices, skipping non-visible violations inline.
+  2. `buildFalsePositiveContext` sent index numbers to the AI (e.g. "violation 0") — if the AI returned violations in a different order on re-scan, index 0 no longer matched the dismissed item. Fixed: now sends the actual violation issue text so the AI matches by content.
+
 ## [1.5.1] — 2026-03-23
 
 ### Fixed
