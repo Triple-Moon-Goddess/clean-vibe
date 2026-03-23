@@ -225,7 +225,7 @@
       <div class="logo">✦</div>
       <div>
         <div class="brand">clean<span>-vibe</span></div>
-        <div style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:2px;">v1.4.9</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:2px;">v1.5.0</div>
       </div>
     </div>
     <div class="header-links">
@@ -377,7 +377,7 @@
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const PROXY = 'https://clean-vibe-proxy.lisa-f9c.workers.dev';
-const VERSION = '1.4.9';
+const VERSION = '1.5.0';
 
 const SKIP_PATTERNS = [
   /node_modules/, /\.min\.js$/, /dist\//, /build\//, /\.lock$/,
@@ -784,6 +784,12 @@ No silent failures — every catch must surface an error visibly
 Exceptions not error codes. Never return null. Never pass null.
 No hardcoded magic values (numbers, strings used as data in conditionals)
 
+FALSE POSITIVES — CRITICAL RULE:
+The user message may contain a "Previously dismissed violations" section listing violations the developer has reviewed and accepted as intentional or context-appropriate.
+You MUST NOT raise any violation that matches a dismissed one — not even as a lower severity, not even reworded.
+If you have a strong technical objection to a dismissal, you may add a single "fix" note starting with "FP note:" explaining your concern, but you must still omit it from violations.
+Respect the developer's domain knowledge. They know their codebase.
+
 Respond ONLY with raw JSON — no markdown, no backticks, no explanation:
 {"violations":[{"severity":"blocker"|"warning"|"suggestion","principle":"short label","section":"","issue":"one sentence","fix":"one sentence"}],"summary":"one sentence"}`;
 
@@ -796,6 +802,12 @@ For each blocker violation, provide:
 4. Any related violations in the same file that compound the problem
 
 Also identify any additional blockers the initial fast pass may have missed.
+
+FALSE POSITIVES — CRITICAL RULE:
+The user message may contain a "Previously dismissed violations" section listing violations the developer has reviewed and accepted as intentional or context-appropriate.
+You MUST NOT include any violation that matches a dismissed one — not even reworded, not even as a different severity.
+The developer has domain knowledge you lack. Their dismissals are final decisions, not suggestions.
+If you have a strong technical objection, you may note it only in the "summary" field. Never include it as a violation.
 
 Respond ONLY with raw JSON — no markdown, no backticks:
 {"violations":[{"severity":"blocker"|"warning","principle":"label","section":"","issue":"sentence","fix":"sentence","rootCause":"sentence","smellCategory":"category","example":"code string or empty string"}],"summary":"one paragraph","additionalBlockers":[]}`;
@@ -820,7 +832,7 @@ function buildFalsePositiveContext(filePath) {
       return reason && typeof reason === 'string' ? `  - violation ${idx}: ${reason}` : `  - violation ${idx}`;
     });
   if (relevant.length === 0) return '';
-  return '\n\nPreviously dismissed violations (treat as false positives):\n' + relevant.join('\n');
+  return '\n\nPreviously dismissed violations — DO NOT raise these again under any circumstances:\n' + relevant.join('\n') + '\n(These have been reviewed and accepted by the developer. Omit them entirely from your violations array.)';
 }
 
 async function callClaude(system, userMsg, model) {
