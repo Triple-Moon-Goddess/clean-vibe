@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.3.2] — 2026-03-22
+
+### Fixed
+- File violation panels no longer close when marking a false positive — open state is preserved across re-renders
+
 ## [1.3.1] — 2026-03-22
 
 ### Fixed
