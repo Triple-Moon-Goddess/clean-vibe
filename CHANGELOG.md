@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.5.9] — 2026-03-24
+
+### Fixed
+- Large files showed no confirmation in scan log that a blocker was recorded — the log said "skipped" but gave no indication the blocker would appear in the report. Scan log now shows `1B 0W 0S — File too large (XXkb) — blocker added, see report` matching the format of normal file scan output.
+
 ## [1.5.8] — 2026-03-24
 
 ### Fixed
