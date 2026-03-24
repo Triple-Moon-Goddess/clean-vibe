@@ -225,7 +225,7 @@
       <div class="logo">✦</div>
       <div>
         <div class="brand">clean<span>-vibe</span></div>
-        <div style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:2px;">v1.5.8</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:2px;">v1.5.9</div>
       </div>
     </div>
     <div class="header-links">
@@ -377,7 +377,7 @@
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const PROXY = 'https://clean-vibe-proxy.lisa-f9c.workers.dev';
-const VERSION = '1.5.8';
+const VERSION = '1.5.9';
 
 const SKIP_PATTERNS = [
   /node_modules/, /\.min\.js$/, /dist\//, /build\//, /\.lock$/,
@@ -915,17 +915,17 @@ async function doScan() {
       const MAX = 14000;
       if (content.length > MAX) {
         // File too large — skip AI entirely, blocker recorded unconditionally
-        addLog('scan-log', `   ✗ File too large (${Math.round(content.length/1000)}KB > 14KB) — skipped`, 'log-err');
         S.results[file.path] = {
           violations: [{
-          severity: 'blocker',
-          principle: 'File too large to review',
-          section: '',
-          issue: `File is ${Math.round(content.length/1000)}KB — exceeds the 14KB review limit. No AI analysis was performed on this file.`,
-          fix: 'Split this file into smaller focused modules (Clean Code: functions and files do one thing).'
-        }],
-          summary: `File too large to review (${Math.round(content.length/1000)}KB — exceeds 14KB limit).`
+            severity: 'blocker',
+            principle: 'File too large to review',
+            section: '',
+            issue: `File is ${Math.round(content.length/1000)}KB — exceeds the 14KB review limit. No analysis performed.`,
+            fix: 'Split this file into smaller focused modules (Clean Code: functions and files do one thing).'
+          }],
+          summary: `File too large to review (${Math.round(content.length/1000)}KB).`
         };
+        addLog('scan-log', `   1B 0W 0S — File too large (${Math.round(content.length/1000)}KB) — blocker added, see report`, 'log-err');
         updateLive();
       } else {
       const result = await callClaude(HAIKU_SYSTEM, `File: ${file.path}\n\nCode:\n${content}${buildFalsePositiveContext(file.path)}`, 'claude-haiku-4-5-20251001');
