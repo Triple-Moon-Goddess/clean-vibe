@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.5.8] — 2026-03-24
+
+### Fixed
+- Large files were showing truncation warnings without blockers: the blocker was injected after the AI call, but if the AI call threw an error (common on large files due to token limits), the catch block stored an empty violations array — no blocker. Fixed: AI call is now skipped entirely for files over 14KB. The blocker is recorded unconditionally before any AI call. Sonnet pass also skips large files since the Haiku blocker is already present.
+
 ## [1.5.7] — 2026-03-24
 
 ### Added
