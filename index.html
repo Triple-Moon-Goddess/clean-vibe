@@ -225,7 +225,7 @@
       <div class="logo">✦</div>
       <div>
         <div class="brand">clean<span>-vibe</span></div>
-        <div style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:2px;">v1.5.9</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:2px;">v1.6.0</div>
       </div>
     </div>
     <div class="header-links">
@@ -377,7 +377,7 @@
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const PROXY = 'https://clean-vibe-proxy.lisa-f9c.workers.dev';
-const VERSION = '1.5.9';
+const VERSION = '1.6.0';
 
 const SKIP_PATTERNS = [
   /node_modules/, /\.min\.js$/, /dist\//, /build\//, /\.lock$/,
@@ -918,10 +918,10 @@ async function doScan() {
         S.results[file.path] = {
           violations: [{
             severity: 'blocker',
-            principle: 'File too large to review',
+            principle: 'File exceeds review limit',
             section: '',
-            issue: `File is ${Math.round(content.length/1000)}KB — exceeds the 14KB review limit. No analysis performed.`,
-            fix: 'Split this file into smaller focused modules (Clean Code: functions and files do one thing).'
+            issue: `File is ${Math.round(content.length/1000)}KB — exceeds the 14KB scanner limit. No analysis was performed. Note: Clean Code does not set a hard file size limit, but files over ~500 lines (≈15KB) typically violate SRP.`,
+            fix: 'Review whether this file has a single responsibility. If so, consider raising the scanner limit; if not, split into focused modules.'
           }],
           summary: `File too large to review (${Math.round(content.length/1000)}KB).`
         };
