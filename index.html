@@ -225,7 +225,7 @@
       <div class="logo">✦</div>
       <div>
         <div class="brand">clean<span>-vibe</span></div>
-        <div style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:2px;">v1.5.7</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:2px;">v1.5.8</div>
       </div>
     </div>
     <div class="header-links">
@@ -377,7 +377,7 @@
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const PROXY = 'https://clean-vibe-proxy.lisa-f9c.workers.dev';
-const VERSION = '1.5.7';
+const VERSION = '1.5.8';
 
 const SKIP_PATTERNS = [
   /node_modules/, /\.min\.js$/, /dist\//, /build\//, /\.lock$/,
@@ -913,19 +913,22 @@ async function doScan() {
       const content = await fetchContent(file.path);
       S.contentCache[file.path] = content;
       const MAX = 14000;
-      const truncated = content.length > MAX;
-      const snippet = truncated ? content.slice(0, MAX) + '\n// [truncated]' : content;
-      if (truncated) addLog('scan-log', `   ⚠ File truncated (${Math.round(content.length/1000)}KB > 14KB limit) — analysis covers first 14KB only`);
-      const result = await callClaude(HAIKU_SYSTEM, `File: ${file.path}\n\nCode:\n${snippet}${buildFalsePositiveContext(file.path)}`, 'claude-haiku-4-5-20251001');
-      if (truncated) {
-        (result.violations = result.violations || []).unshift({
+      if (content.length > MAX) {
+        // File too large — skip AI entirely, blocker recorded unconditionally
+        addLog('scan-log', `   ✗ File too large (${Math.round(content.length/1000)}KB > 14KB) — skipped`, 'log-err');
+        S.results[file.path] = {
+          violations: [{
           severity: 'blocker',
           principle: 'File too large to review',
           section: '',
-          issue: `File is ${Math.round(content.length/1000)}KB — only the first 14KB was analysed. The remainder is unreviewed.`,
+          issue: `File is ${Math.round(content.length/1000)}KB — exceeds the 14KB review limit. No AI analysis was performed on this file.`,
           fix: 'Split this file into smaller focused modules (Clean Code: functions and files do one thing).'
-        });
-      }
+        }],
+          summary: `File too large to review (${Math.round(content.length/1000)}KB — exceeds 14KB limit).`
+        };
+        updateLive();
+      } else {
+      const result = await callClaude(HAIKU_SYSTEM, `File: ${file.path}\n\nCode:\n${content}${buildFalsePositiveContext(file.path)}`, 'claude-haiku-4-5-20251001');
       S.results[file.path] = result;
 
       const nb = (result.violations || []).filter(v => v.severity === 'blocker').length;
@@ -934,6 +937,7 @@ async function doScan() {
       const cls = nb > 0 ? 'log-err' : nw > 0 ? '' : 'log-ok';
       addLog('scan-log', `   ${nb}B ${nw}W ${ns}S — ${result.summary || ''}`, cls);
       updateLive();
+      } // end else (file within size limit)
     } catch(e) {
       addLog('scan-log', `   ✗ ${e.message}`, 'log-err');
       S.results[file.path] = { violations: [], summary: 'Error: ' + e.message };
@@ -985,27 +989,17 @@ async function doSonnetPass() {
     try {
       const content = S.contentCache[path] || await fetchContent(path);
       const MAX = 14000;
-      const truncatedS = content.length > MAX;
-      const snippet = truncatedS ? content.slice(0, MAX) + '\n// [truncated]' : content;
-      if (truncatedS) addLog('sonnet-log', `   ⚠ File truncated (${Math.round(content.length/1000)}KB > 14KB limit)`, 'log-err');
+      if (content.length > MAX) {
+        // File too large — skip Sonnet entirely, blocker already in Haiku results
+        addLog('sonnet-log', `   ✗ File too large (${Math.round(content.length/1000)}KB > 14KB) — skipped`, 'log-err');
+      } else {
       const knownBlockers = (S.results[path]?.violations || []).filter(v => v.severity === 'blocker');
       const fpContextSonnet = buildFalsePositiveContext(path);
-      const prompt = `File: ${path}\n\nKnown blockers from initial scan:\n${JSON.stringify(knownBlockers, null, 2)}\n\nFull file:\n${snippet}${fpContextSonnet}`;
+      const prompt = `File: ${path}\n\nKnown blockers from initial scan:\n${JSON.stringify(knownBlockers, null, 2)}\n\nFull file:\n${content}${fpContextSonnet}`;
       const result = await callClaude(SONNET_SYSTEM, prompt, 'claude-sonnet-4-20250514');
-      if (truncatedS) {
-        (result.violations = result.violations || []).unshift({
-          severity: 'blocker',
-          principle: 'File too large to review',
-          section: '',
-          issue: `File is ${Math.round(content.length/1000)}KB — only the first 14KB was analysed. The remainder is unreviewed.`,
-          fix: 'Split this file into smaller focused modules (Clean Code: functions and files do one thing).',
-          rootCause: 'File exceeds reviewable size limit — partial analysis only.',
-          smellCategory: 'Bloated Code',
-          example: ''
-        });
-      }
       S.sonnetResults[path] = result;
       addLog('sonnet-log', `   → ${(result.violations || []).length} violations with root cause analysis`, 'log-sonnet');
+      } // end else (file within size limit)
     } catch(e) {
       addLog('sonnet-log', `   ✗ ${e.message}`, 'log-err');
       if (e.message.includes('401') || e.message.includes('403')) {
