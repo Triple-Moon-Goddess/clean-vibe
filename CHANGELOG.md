@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.6.1] — 2026-03-24
+
+### Added
+- Four missing Clean Code principles added to Haiku system prompt:
+  - One primary class or concept per file — file should have one reason to exist
+  - Classes must be small and cohesive — single responsibility, minimal public interface
+  - No dead code — no unused variables, unreachable code, or commented-out code
+  - No output arguments — functions must not modify arguments as output; use return values
+
 ## [1.6.0] — 2026-03-24
 
 ### Changed
