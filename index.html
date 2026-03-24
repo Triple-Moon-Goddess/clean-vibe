@@ -225,7 +225,7 @@
       <div class="logo">✦</div>
       <div>
         <div class="brand">clean<span>-vibe</span></div>
-        <div style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:2px;">v1.6.0</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:2px;">v1.6.1</div>
       </div>
     </div>
     <div class="header-links">
@@ -377,7 +377,7 @@
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const PROXY = 'https://clean-vibe-proxy.lisa-f9c.workers.dev';
-const VERSION = '1.6.0';
+const VERSION = '1.6.1';
 
 const SKIP_PATTERNS = [
   /node_modules/, /\.min\.js$/, /dist\//, /build\//, /\.lock$/,
@@ -788,11 +788,15 @@ SEVERITY:
 PRINCIPLES TO ENFORCE:
 Meaningful names (no abbreviations, intention-revealing, no noise words)
 Functions do one thing, one level of abstraction, max ~20 lines, max 3 args, no flag args, no side effects
+No output arguments — functions must not modify arguments as output; use return values
 Comments explain WHY not WHAT — code must be self-documenting
 DRY — every piece of knowledge once. SRP — one reason to change. KISS.
 No silent failures — every catch must surface an error visibly
 Exceptions not error codes. Never return null. Never pass null.
 No hardcoded magic values (numbers, strings used as data in conditionals)
+One primary class or concept per file — a file should have one reason to exist
+Classes must be small and cohesive — single responsibility, minimal public interface
+No dead code — no unused variables, unreachable code, or commented-out code left in place
 
 FALSE POSITIVES — CRITICAL RULE:
 The user message may contain a "Previously dismissed violations" section listing violations the developer has reviewed and accepted as intentional or context-appropriate.
