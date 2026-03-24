@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.5.7] — 2026-03-24
+
+### Added
+- Large file blocker: files exceeding 14KB now get a blocker violation injected — "File too large to review — only first 14KB analysed, remainder unreviewed" — surfacing as a blocker in the report rather than just a warning in the scan log. Applies to both Haiku and Sonnet passes. The violation is dismissable as a false positive if intentional.
+
 ## [1.5.6] — 2026-03-24
 
 ### Fixed
