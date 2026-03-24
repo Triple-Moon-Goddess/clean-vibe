@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.6.0] — 2026-03-24
+
+### Changed
+- Large file blocker text corrected: Clean Code does not define a hard file size limit — the 14KB limit is a scanner constraint, not a Clean Code rule. Blocker now says so explicitly and guides the user to consider whether SRP is actually violated before splitting the file.
+
 ## [1.5.9] — 2026-03-24
 
 ### Fixed
