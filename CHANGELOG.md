@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.5.6] — 2026-03-24
+
+### Fixed
+- "Maximum call stack size exceeded" when saving `.clean-vibe-ignore` with many entries: `String.fromCharCode(...bytes)` spread operator passes every byte as a separate function argument — exceeds JS call stack on large files. Replaced with `Array.from(bytes, b => String.fromCharCode(b)).join('')` which is safe at any size.
+
 ## [1.5.5] — 2026-03-23
 
 ### Fixed
