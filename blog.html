@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Introducing clean-vibe — AI Clean Code Scanner</title>
-<meta name="description" content="clean-vibe scans your entire GitHub repository for Clean Code violations using a two-pass AI analysis. Free for non-commercial use." />
+<title>Blog — clean-vibe</title>
+<meta name="description" content="Writing on clean code, AI-assisted development, and building better software." />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <style>
@@ -160,13 +160,12 @@
 
   .article h3 {
     font-family: var(--sans);
-    font-size: 1rem;
+    font-size: 12px;
     font-weight: 500;
     color: var(--ink);
     margin: 2rem 0 0.5rem;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    font-size: 12px;
   }
 
   .article strong { font-weight: 500; color: var(--ink); }
@@ -324,6 +323,91 @@
   .sev-text { font-size: 13px; color: var(--ink2); line-height: 1.5; }
   .sev-text strong { color: var(--ink); }
 
+  /* ── Step list ── */
+  .step-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 2rem 0;
+    border: 1px solid var(--paper3);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .step-item {
+    display: flex;
+    gap: 1.25rem;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--paper3);
+    background: var(--paper);
+  }
+
+  .step-item:last-child { border-bottom: none; }
+
+  .step-num {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--accent);
+    min-width: 24px;
+    padding-top: 2px;
+  }
+
+  .step-body { flex: 1; }
+
+  .step-title {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 4px;
+  }
+
+  .step-desc {
+    font-size: 13px;
+    color: var(--ink3);
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  /* ── Rule table ── */
+  .rule-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.5rem 0;
+    font-size: 13px;
+  }
+
+  .rule-table th {
+    font-family: var(--mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink3);
+    font-weight: 500;
+    text-align: left;
+    padding: 8px 12px;
+    border-bottom: 2px solid var(--paper3);
+    background: var(--paper2);
+  }
+
+  .rule-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--paper3);
+    color: var(--ink2);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+
+  .rule-table tr:last-child td { border-bottom: none; }
+
+  .rule-table td:first-child {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent);
+    white-space: nowrap;
+    background: var(--paper2);
+  }
+
   /* ── CTA ── */
   .cta-block {
     background: var(--ink);
@@ -375,6 +459,67 @@
 
   .btn-ghost:hover { border-color: rgba(245,242,235,0.7); }
 
+  /* ── Post index ── */
+  .post-index {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 4rem 2rem 2rem;
+  }
+
+  .post-index-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink3);
+    margin-bottom: 2rem;
+  }
+
+  .post-card {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 1.5rem 0;
+    border-bottom: 1px solid var(--paper3);
+    text-decoration: none;
+    color: inherit;
+    transition: none;
+  }
+
+  .post-card:first-of-type { border-top: 1px solid var(--paper3); }
+
+  .post-card-eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .post-card-title {
+    font-family: var(--serif);
+    font-size: 1.5rem;
+    color: var(--ink);
+    line-height: 1.2;
+  }
+
+  .post-card:hover .post-card-title { color: var(--accent); }
+
+  .post-card-meta {
+    font-size: 12px;
+    color: var(--ink3);
+    display: flex;
+    gap: 12px;
+  }
+
+  .post-card-lede {
+    font-size: 14px;
+    color: var(--ink3);
+    line-height: 1.6;
+    max-width: 600px;
+    margin-top: 4px;
+  }
+
   /* ── Footer ── */
   .site-footer {
     border-top: 1px solid var(--paper3);
@@ -404,21 +549,354 @@
     border-top: 1px solid var(--paper3);
     margin: 2.5rem 0;
   }
+
+  /* ── Inline code ── */
+  .ic {
+    font-family: var(--mono);
+    font-size: 14px;
+    background: var(--paper2);
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+
+  /* ── Post nav ── */
+  .post-nav {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 0 2rem 2rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--ink3);
+  }
+
+  .post-nav a { color: var(--accent); text-decoration: none; }
+  .post-nav a:hover { text-decoration: underline; }
+
+  /* ── Hidden posts ── */
+  article.post { display: none; }
+  article.post.active { display: block; }
+  .post-index-section { display: block; }
+  .post-index-section.hidden { display: none; }
 </style>
 </head>
 <body>
 
 <header class="site-header">
-  <a class="site-logo" href="https://triple-moon-goddess.github.io/clean-vibe/">
-    ✦ clean<span>-vibe</span>
+  <a href="https://triple-moon-goddess.github.io/clean-vibe/" class="site-logo">
+    <span>✦</span> clean-vibe
   </a>
   <nav class="header-nav">
+    <a href="https://triple-moon-goddess.github.io/clean-vibe/blog.html">Blog</a>
     <a href="https://github.com/Triple-Moon-Goddess/clean-vibe">GitHub</a>
-    <span style="font-family:'DM Mono',monospace;font-size:11px;color:#7a7a7a;">v1.6.1</span><a href="https://triple-moon-goddess.github.io/clean-vibe/license.html" class="cta">Get a license</a>
+    <a href="https://triple-moon-goddess.github.io/clean-vibe/license.html">License</a>
+    <a href="https://triple-moon-goddess.github.io/clean-vibe/" class="cta">Open app →</a>
   </nav>
 </header>
 
-<article>
+<!-- ── Post index ── -->
+<div class="post-index-section" id="index-section">
+  <div class="post-index">
+    <div class="post-index-label">All posts</div>
+
+    <a class="post-card" href="#" onclick="showPost('post-claude-md'); return false;">
+      <div class="post-card-eyebrow">AI-assisted development</div>
+      <div class="post-card-title">How to Make AI Write Clean Code Every Time</div>
+      <div class="post-card-meta">
+        <span>Triple Moon Goddess</span>
+        <span>March 2026</span>
+        <span>8 min read</span>
+      </div>
+      <div class="post-card-lede">Most developers get mediocre code from AI. Here's why — and the system that fixes it.</div>
+    </a>
+
+    <a class="post-card" href="#" onclick="showPost('post-intro'); return false;">
+      <div class="post-card-eyebrow">Introducing clean-vibe</div>
+      <div class="post-card-title">Your codebase has more violations than you think.</div>
+      <div class="post-card-meta">
+        <span>Triple Moon Goddess</span>
+        <span>March 2026</span>
+        <span>5 min read</span>
+      </div>
+      <div class="post-card-lede">clean-vibe scans your entire GitHub repository for Clean Code violations using a two-pass AI analysis.</div>
+    </a>
+
+  </div>
+</div>
+
+<!-- ── Post: How to Make AI Write Clean Code ── -->
+<article class="post" id="post-claude-md">
+
+  <div class="post-nav">
+    <a href="#" onclick="showIndex(); return false;">← All posts</a>
+  </div>
+
+  <div class="hero">
+    <div class="hero-eyebrow">AI-assisted development</div>
+    <h1>How to Make AI Write <em>Clean Code</em> Every Time</h1>
+    <div class="hero-meta">
+      <span>Triple Moon Goddess</span>
+      <span class="dot"></span>
+      <span>March 2026</span>
+      <span class="dot"></span>
+      <span>8 min read</span>
+    </div>
+    <p class="hero-lede">
+      Most developers get mediocre code from AI. Here's why — and the system that fixes it.
+    </p>
+  </div>
+
+  <div class="article">
+
+    <h2>The problem nobody talks about</h2>
+
+    <p>
+      AI will write you working code almost instantly. It will also write you unmaintainable,
+      inconsistent, security-naive code just as fast — and it will do so cheerfully, confidently,
+      and without a word of warning.
+    </p>
+
+    <p>
+      The problem isn't that AI can't write clean code. It can. The problem is that it won't
+      unless you build a system that makes it.
+    </p>
+
+    <p>
+      Here's what happens without a system: you start a session, describe what you want, get
+      code that works. Next session, different conventions. Third session, the AI sees the
+      patterns already in the codebase and mirrors them — including the bad ones. By month three,
+      you have a codebase that looks like it was written by six different developers with six
+      different opinions, because effectively it was.
+    </p>
+
+    <div class="pullquote">
+      <p>"Without a mechanism to enforce standards across sessions, standards don't get enforced."</p>
+    </div>
+
+    <p>
+      This isn't a criticism of AI. It's a description of how AI works. It has no persistent
+      memory. It optimises for satisfying the current request. It defers to whatever it sees
+      in context. The fix is a system.
+    </p>
+
+    <h2>Why AI code quality degrades over time</h2>
+
+    <p>Three forces work against you:</p>
+
+    <div class="severity-row">
+      <div class="severity-item">
+        <span class="sev-badge blocker">amnesia</span>
+        <div class="sev-text"><strong>Context amnesia.</strong> Each session starts blank. The AI doesn't remember what it decided last time, what patterns you established, or what bugs you spent hours fixing.</div>
+      </div>
+      <div class="severity-item">
+        <span class="sev-badge warning">mirroring</span>
+        <div class="sev-text"><strong>Pattern mirroring.</strong> The AI looks at your existing code and writes more of it. Good codebase: good new code. Inconsistent codebase: more inconsistency.</div>
+      </div>
+      <div class="severity-item">
+        <span class="sev-badge suggestion">optimising</span>
+        <div class="sev-text"><strong>Request optimisation.</strong> The AI's job is to satisfy your immediate request. Cleanness, security, and maintainability are secondary unless you make them primary.</div>
+      </div>
+    </div>
+
+    <p>
+      None of this is malicious. It's the default behaviour of a tool optimising for the
+      wrong thing. The system below changes what it optimises for.
+    </p>
+
+    <h2>The methodology: four steps before you write code</h2>
+
+    <div class="step-list">
+      <div class="step-item">
+        <div class="step-num">01</div>
+        <div class="step-body">
+          <div class="step-title">Define the platform, not just the feature</div>
+          <div class="step-desc">Write down what each app does, who uses it, how parts share data, the auth model, what data is sensitive, and what the business model is. Every hour here saves ten hours of refactoring.</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">02</div>
+        <div class="step-body">
+          <div class="step-title">Write CLAUDE.md before any code</div>
+          <div class="step-desc">The instruction set every AI session reads first. Lives at the repo root. Contains structure rules, data rules, clean code rules, explicit prohibitions, and a commit checklist. This is the enforcement mechanism.</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">03</div>
+        <div class="step-body">
+          <div class="step-title">Scaffold the shared boundary first</div>
+          <div class="step-desc">Before app-specific code, create the shared package with schema constants, canonical types, one DB init, one API client. Enforce import rules in tsconfig. This is what makes a codebase pluggable.</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">04</div>
+        <div class="step-body">
+          <div class="step-title">Write the build plan as session instructions</div>
+          <div class="step-desc">Each session gets a prerequisite, a single goal, numbered steps, and concrete done-when criteria. The session plan is the memory the AI doesn't have.</div>
+        </div>
+      </div>
+    </div>
+
+    <h2>The CLAUDE.md file</h2>
+
+    <p>
+      <span class="ic">CLAUDE.md</span> is the most important file in your repository. It lives
+      at the repo root. Every AI session reads it before doing anything. It is how you get
+      consistent behaviour from a tool that has no memory.
+    </p>
+
+    <p>A good <span class="ic">CLAUDE.md</span> contains:</p>
+
+    <p>
+      <strong>What the project is</strong> — one table, each module, who uses it, what it does.
+      Two minutes to read, eliminates ten minutes of context-setting per session.
+    </p>
+
+    <p>
+      <strong>Import rules</strong> — where things live, and what is allowed to import from what.
+      This is the rule that makes modularity actually work:
+    </p>
+
+    <div class="code-block">
+      <pre><span class="comment"># The rule that makes plug-and-play possible</span>
+packages/shared/   <span class="comment">← imports from nowhere else</span>
+apps/client/       <span class="comment">← imports from shared only</span>
+apps/api/          <span class="comment">← imports from shared only</span>
+
+<span class="comment"># Apps never import from each other. Ever.</span>
+<span class="comment"># If app A needs something from app B, it belongs in shared.</span></pre>
+    </div>
+
+    <p>
+      <strong>The explicit prohibitions table</strong> — this is more effective than positive
+      rules alone. A table that says "use <span class="ic">any</span>" in one column and
+      "defeats the type system, define a proper type" in the next is harder to ignore than
+      a style guide paragraph.
+    </p>
+
+    <p>
+      <strong>Before every commit checklist</strong> — a literal checklist the AI runs before
+      finishing any task. Zero TypeScript errors. No hardcoded values. No empty catch blocks.
+      No imports across app boundaries. This is the gate.
+    </p>
+
+    <h2>The clean code rules</h2>
+
+    <p>
+      These go verbatim into <span class="ic">CLAUDE.md</span>. They are not a style guide —
+      they are enforced by the commit checklist.
+    </p>
+
+    <table class="rule-table">
+      <thead>
+        <tr>
+          <th>Rule</th>
+          <th>What it means in practice</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Intention-revealing names</td>
+          <td>If a comment is needed to explain a name, rename it. <span class="ic">d</span> is not a name. <span class="ic">clientRecord</span> is.</td>
+        </tr>
+        <tr>
+          <td>One responsibility</td>
+          <td>If you can extract a meaningful sub-function, the original does more than one thing.</td>
+        </tr>
+        <tr>
+          <td>Max 3 parameters</td>
+          <td>Beyond 3, group into a typed object. No boolean flag parameters — split into two functions.</td>
+        </tr>
+        <tr>
+          <td>Throw, don't return null</td>
+          <td>Empty catch blocks are bugs. Fail loudly. A clear error is better than silent wrong behaviour.</td>
+        </tr>
+        <tr>
+          <td>Comments explain why</td>
+          <td>Never what. If code needs a comment to explain what it does, rewrite the code.</td>
+        </tr>
+        <tr>
+          <td>No any in TypeScript</td>
+          <td>Ever. Use <span class="ic">unknown</span> and narrow, or define the type.</td>
+        </tr>
+        <tr>
+          <td>Boy Scout Rule</td>
+          <td>Leave every file cleaner than you found it.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>The single test for any line of code</h2>
+
+    <div class="pullquote">
+      <p>Read the code aloud. If it doesn't sound like clear prose describing what it does, it needs work.</p>
+    </div>
+
+    <h2>What this actually changes</h2>
+
+    <p>
+      With this system in place, every AI session opens by reading <span class="ic">CLAUDE.md</span>.
+      It knows the structure, the rules, the prohibited patterns. It knows what shared means and
+      why apps don't import from each other. It knows that <span class="ic">any</span> is a
+      blocker, that empty catch blocks are bugs, that sensitive data doesn't get hardcoded.
+    </p>
+
+    <p>
+      It still makes mistakes. You still need to review. But the mistakes are smaller, the
+      patterns are consistent, and the codebase accumulates quality instead of debt.
+    </p>
+
+    <p>
+      The methodology is the memory the AI doesn't have. You build it once per project.
+      It compounds across every session after that.
+    </p>
+
+    <h2>Getting started</h2>
+
+    <div class="feature-grid">
+      <div class="feature-cell">
+        <div class="feature-icon">①</div>
+        <div class="feature-title">Copy the template</div>
+        <p class="feature-desc">Get the full CLAUDE.md template, clean code rules reference, and project setup checklist from the methodology guide.</p>
+      </div>
+      <div class="feature-cell">
+        <div class="feature-icon">②</div>
+        <div class="feature-title">Fill in your platform</div>
+        <p class="feature-desc">Define what each app does, the auth model, data rules, and any domain-specific prohibitions before writing a line of code.</p>
+      </div>
+      <div class="feature-cell">
+        <div class="feature-icon">③</div>
+        <div class="feature-title">Scaffold shared first</div>
+        <p class="feature-desc">Create packages/shared with schema.ts and types.ts. Enforce import rules in tsconfig. Do this before any app code.</p>
+      </div>
+      <div class="feature-cell">
+        <div class="feature-icon">④</div>
+        <div class="feature-title">Start every session right</div>
+        <p class="feature-desc">"Read CLAUDE.md before you start." Four words. Run the commit checklist before finishing. That's the whole system.</p>
+      </div>
+    </div>
+
+    <hr class="rule" />
+
+    <div class="cta-block">
+      <h2>Scan your codebase first.</h2>
+      <p>See what violations are already there before setting up the system to prevent new ones.</p>
+      <div class="cta-buttons">
+        <a href="https://triple-moon-goddess.github.io/clean-vibe/" class="btn-light">Open clean-vibe →</a>
+        <a href="https://github.com/Triple-Moon-Goddess/clean-vibe" class="btn-ghost">View on GitHub</a>
+      </div>
+    </div>
+
+  </div>
+
+</article>
+
+<!-- ── Post: Introducing clean-vibe (original) ── -->
+<article class="post" id="post-intro">
+
+  <div class="post-nav">
+    <a href="#" onclick="showIndex(); return false;">← All posts</a>
+  </div>
 
   <div class="hero">
     <div class="hero-eyebrow">Introducing clean-vibe</div>
@@ -438,7 +916,7 @@
   <div class="article">
 
     <p>
-      Every codebase accumulates debt. Not the big architectural decisions — those get debated in PRs. The quiet stuff. The function that does three things. The variable named <code style="font-family:var(--mono);font-size:14px;background:var(--paper2);padding:1px 5px;border-radius:3px">d</code>. The catch block that swallows errors silently. The magic number buried in a conditional.
+      Every codebase accumulates debt. Not the big architectural decisions — those get debated in PRs. The quiet stuff. The function that does three things. The variable named <code class="ic">d</code>. The catch block that swallows errors silently. The magic number buried in a conditional.
     </p>
 
     <p>
@@ -543,7 +1021,7 @@
     </div>
 
     <p>
-      The violations: cryptic parameter names (<code style="font-family:var(--mono);font-size:14px;background:var(--paper2);padding:1px 5px;border-radius:3px">d</code>, <code style="font-family:var(--mono);font-size:14px;background:var(--paper2);padding:1px 5px;border-radius:3px">t</code>), a flag argument, a silent catch, an error code return, and a comment describing what the code already says. Five violations in eight lines — none of them obvious without a systematic review.
+      The violations: cryptic parameter names (<code class="ic">d</code>, <code class="ic">t</code>), a flag argument, a silent catch, an error code return, and a comment describing what the code already says. Five violations in eight lines — none of them obvious without a systematic review.
     </p>
 
     <h2>The two-pass model</h2>
@@ -559,7 +1037,7 @@
     <h2>Zero dependencies. Zero build step.</h2>
 
     <p>
-      clean-vibe is a single <code style="font-family:var(--mono);font-size:14px;background:var(--paper2);padding:1px 5px;border-radius:3px">index.html</code> file. No npm install, no webpack, no server. Open it locally or serve it from any static host. Your API keys stay in your browser — they never pass through any server except Anthropic's and GitHub's directly.
+      clean-vibe is a single <code class="ic">index.html</code> file. No npm install, no webpack, no server. Open it locally or serve it from any static host. Your API keys stay in your browser — they never pass through any server except Anthropic's and GitHub's directly.
     </p>
 
     <div class="code-block">
@@ -601,6 +1079,41 @@ open clean-vibe/index.html</pre>
     © 2026 Triple Moon Goddess
   </p>
 </footer>
+
+<script>
+  function showPost(id) {
+    document.getElementById('index-section').classList.add('hidden');
+    document.querySelectorAll('article.post').forEach(a => a.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo(0, 0);
+    history.pushState({post: id}, '', '#' + id);
+  }
+
+  function showIndex() {
+    document.getElementById('index-section').classList.remove('hidden');
+    document.querySelectorAll('article.post').forEach(a => a.classList.remove('active'));
+    window.scrollTo(0, 0);
+    history.pushState({}, '', window.location.pathname);
+  }
+
+  // Handle direct hash links
+  function handleHash() {
+    const hash = window.location.hash.slice(1);
+    if (hash && document.getElementById(hash)) {
+      showPost(hash);
+    }
+  }
+
+  window.addEventListener('popstate', function(e) {
+    if (e.state && e.state.post) {
+      showPost(e.state.post);
+    } else {
+      showIndex();
+    }
+  });
+
+  handleHash();
+</script>
 
 </body>
 </html>
