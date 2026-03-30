@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.6.3] — 2026-03-29
+
+### Fixed
+- Strip AI-generated "File exceeds review limit" violations from Haiku results. That principle is exclusively owned by the large-file block — AI-generated copies were missing the `chunkable` flag, causing the "Scan in chunks" button to not appear.
+
 ## [1.6.2] — 2026-03-29
 
 ### Added
