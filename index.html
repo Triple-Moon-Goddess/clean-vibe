@@ -225,7 +225,7 @@
       <div class="logo">✦</div>
       <div>
         <div class="brand">clean<span>-vibe</span></div>
-        <div style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:2px;">v1.6.1</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:2px;">v1.6.2</div>
       </div>
     </div>
     <div class="header-links">
@@ -377,7 +377,7 @@
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const PROXY = 'https://clean-vibe-proxy.lisa-f9c.workers.dev';
-const VERSION = '1.6.1';
+const VERSION = '1.6.2';
 
 const SKIP_PATTERNS = [
   /node_modules/, /\.min\.js$/, /dist\//, /build\//, /\.lock$/,
@@ -925,11 +925,12 @@ async function doScan() {
             principle: 'File exceeds review limit',
             section: '',
             issue: `File is ${Math.round(content.length/1000)}KB — exceeds the 14KB scanner limit. No analysis was performed. Note: Clean Code does not set a hard file size limit, but files over ~500 lines (≈15KB) typically violate SRP.`,
-            fix: 'Review whether this file has a single responsibility. If so, consider raising the scanner limit; if not, split into focused modules.'
+            fix: 'Review whether this file has a single responsibility. If so, consider raising the scanner limit; if not, split into focused modules.',
+            chunkable: true
           }],
-          summary: `File too large to review (${Math.round(content.length/1000)}KB).`
+          summary: `File too large to review (${Math.round(content.length/1000)}KB). Use \'Scan in chunks\' to analyse anyway.`
         };
-        addLog('scan-log', `   1B 0W 0S — File too large (${Math.round(content.length/1000)}KB) — blocker added, see report`, 'log-err');
+        addLog('scan-log', `   1B 0W 0S — File too large (${Math.round(content.length/1000)}KB) — use \'Scan in chunks\' in report to analyse`, 'log-err');
         updateLive();
       } else {
       const result = await callClaude(HAIKU_SYSTEM, `File: ${file.path}\n\nCode:\n${content}${buildFalsePositiveContext(file.path)}`, 'claude-haiku-4-5-20251001');
@@ -1179,6 +1180,7 @@ function renderReport() {
             '<button class="fp-btn ' + (isDismissed ? 'active' : '') + '" onclick="toggleDismiss(\'' + fpKey + '\', event)">' +
               (isDismissed ? 'false positive &#10003;' : 'false positive?') +
             '</button>' +
+            (v.chunkable ? '<button class="fp-btn" style="margin-left:6px;background:var(--purple-bg);color:var(--purple);border-color:var(--purple);" onclick="scanInChunks(\'' + safePath + '\', event)">&#9654; scan in chunks</button>' : '') +
             (isDismissed && typeof S.dismissed[path + '::' + vi] === 'string' ?
               '<div class="fp-reason">&#9656; ' + S.dismissed[path + '::' + vi] + '</div>' : '') +
           '</div>';
@@ -1194,6 +1196,57 @@ function renderReport() {
 
 function toggleFile(id) {
   document.getElementById(id)?.classList.toggle('open');
+}
+
+async function scanInChunks(path, event) {
+  event.stopPropagation();
+  const btn = event.target;
+  btn.disabled = true;
+  btn.textContent = '⏳ scanning…';
+
+  const CHUNK = 14000;
+  const raw = S.contentCache[path];
+  if (!raw) { btn.textContent = '✗ content not cached'; return; }
+
+  const chunks = [];
+  for (let i = 0; i < raw.length; i += CHUNK) {
+    chunks.push(raw.slice(i, i + CHUNK));
+  }
+
+  const allViolations = [];
+  const seen = new Set();
+
+  try {
+    for (let ci = 0; ci < chunks.length; ci++) {
+      btn.textContent = `⏳ chunk ${ci + 1}/${chunks.length}…`;
+      const prompt = `File: ${path} (chunk ${ci + 1} of ${chunks.length}, chars ${ci * CHUNK}–${Math.min((ci + 1) * CHUNK, raw.length)} of ${raw.length})
+
+Code:
+${chunks[ci]}${buildFalsePositiveContext(path)}`;
+      const result = await callClaude(HAIKU_SYSTEM, prompt, 'claude-haiku-4-5-20251001');
+      for (const v of (result.violations || [])) {
+        const key = v.principle + '::' + v.issue;
+        if (!seen.has(key)) {
+          seen.add(key);
+          allViolations.push(v);
+        }
+      }
+    }
+
+    const nb = allViolations.filter(v => v.severity === 'blocker').length;
+    const nw = allViolations.filter(v => v.severity === 'warning').length;
+    const ns = allViolations.filter(v => v.severity === 'suggestion').length;
+
+    S.results[path] = {
+      violations: allViolations,
+      summary: `Scanned in ${chunks.length} chunks (${Math.round(raw.length / 1000)}KB). ${nb}B ${nw}W ${ns}S found.`
+    };
+    renderReport();
+    updateLive();
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = '✗ ' + e.message;
+  }
 }
 
 function toggleDismiss(fpKey, event) {
