@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.6.2] — 2026-03-29
+
+### Added
+- Large file chunk scanning: files over 14KB now record a blocker with a **"Scan in chunks"** button in the report. Clicking it splits the file into 14KB chunks, scans each with Haiku, de-duplicates violations by principle+issue, and replaces the blocker with real results — no re-run required.
+
 ## [1.6.1] — 2026-03-24
 
 ### Added
